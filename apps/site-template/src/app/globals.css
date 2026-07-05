@@ -1,0 +1,4 @@
+@import "tailwindcss";
+
+/* site-kit のコンポーネント内のクラスもスキャン対象にする */
+@source "../../../../packages/site-kit/src";
