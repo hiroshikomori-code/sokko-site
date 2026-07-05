@@ -1,0 +1,115 @@
+# 生成サイトのビルド＆デプロイ（計画6章）
+# studio が GitHub REST API で dispatch → SiteConfig取得 → 静的ビルド →
+# Cloudflare Workers Static Assets へ wrangler deploy → Supabaseへ結果を書き戻し
+name: deploy-site
+
+on:
+  workflow_dispatch:
+    inputs:
+      project_id:
+        description: 'ソッコーサイトの案件ID（projects.id）'
+        required: true
+        type: string
+      env:
+        description: 'デプロイ先'
+        required: true
+        type: choice
+        options: [preview, production]
+
+concurrency:
+  # 同一案件の並行デプロイを防ぐ（後勝ちで前のrunをキャンセル）
+  group: site-${{ inputs.project_id }}-${{ inputs.env }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Fetch SiteConfig from Supabase
+        working-directory: apps/site-template
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/fetch-site-config.mjs "${{ inputs.project_id }}" site.config.json
+
+      - name: Resolve site slug
+        id: slug
+        working-directory: apps/site-template
+        run: echo "slug=$(node -p "JSON.parse(require('fs').readFileSync('site.config.json','utf8')).meta.slug")" >> "$GITHUB_OUTPUT"
+
+      - name: Build static site
+        working-directory: apps/site-template
+        env:
+          SITE_CONFIG_PATH: site.config.json
+        run: pnpm build
+
+      - name: Add noindex headers (preview only)
+        if: inputs.env == 'preview'
+        working-directory: apps/site-template
+        run: |
+          printf '/*\n  X-Robots-Tag: noindex\n' > out/_headers
+
+      - name: Write wrangler config
+        working-directory: apps/site-template
+        run: |
+          NAME="site-${{ steps.slug.outputs.slug }}"
+          if [ "${{ inputs.env }}" = "preview" ]; then NAME="${NAME}-preview"; fi
+          cat > wrangler.jsonc <<EOF
+          {
+            "name": "${NAME}",
+            "compatibility_date": "2026-06-01",
+            "assets": {
+              "directory": "./out",
+              "not_found_handling": "404-page"
+            }
+          }
+          EOF
+          echo "worker_name=${NAME}" >> "$GITHUB_ENV"
+
+      - name: Deploy to Cloudflare Workers
+        id: deploy
+        working-directory: apps/site-template
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          pnpm dlx wrangler@4 deploy 2>&1 | tee deploy.log
+          URL=$(grep -oE 'https://[a-zA-Z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          echo "url=${URL}" >> "$GITHUB_OUTPUT"
+
+      - name: Update project record in Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          if [ "${{ inputs.env }}" = "preview" ]; then
+            BODY="{\"preview_url\": \"${DEPLOY_URL}\"}"
+          else
+            BODY="{\"deploy_url\": \"${DEPLOY_URL}\", \"status\": \"published\"}"
+          fi
+          curl -sf -X PATCH \
+            "${SUPABASE_URL}/rest/v1/projects?id=eq.${{ inputs.project_id }}" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "${BODY}"
+          curl -sf -X POST \
+            "${SUPABASE_URL}/rest/v1/audit_log" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"project_id\": \"${{ inputs.project_id }}\", \"action\": \"deployed_${{ inputs.env }}\", \"detail\": {\"url\": \"${DEPLOY_URL}\", \"run_id\": \"${{ github.run_id }}\"}}"

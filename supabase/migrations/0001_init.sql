@@ -48,6 +48,8 @@ create table public.projects (
   slug text unique check (slug ~ '^[a-z0-9-]+$'),
   input jsonb not null default '{}'::jsonb,
   input_schema_version int not null default 1,
+  -- 確定済みSiteConfigスナップショット（studioが組み立て、CIビルドが読む契約の実体）
+  site_config jsonb not null default '{}'::jsonb,
   status text not null default 'draft'
     check (status in ('draft', 'generating', 'revising', 'review', 'published')),
   current_step int not null default 1 check (current_step between 1 and 8),
