@@ -4,6 +4,8 @@ import { getCurrentUser } from '@/lib/auth';
 import { getProjectForStep } from '@/lib/projects';
 import { Stepper } from '@/components/stepper';
 import { Step1Form } from '@/components/steps/step1-form';
+import { Step2Template } from '@/components/steps/step2-template';
+import { Step3Generate } from '@/components/steps/step3-generate';
 
 const STEP_TITLES: Record<number, { title: string; description: string }> = {
   1: {
@@ -65,6 +67,17 @@ export default async function StepPage({
             projectId={project.id}
             initialInput={project.input}
             readOnly={!['draft', 'revising'].includes(project.status)}
+          />
+        ) : step === 2 ? (
+          <Step2Template
+            projectId={project.id}
+            input={project.input}
+            currentTemplateId={project.template_id}
+          />
+        ) : step === 3 ? (
+          <Step3Generate
+            projectId={project.id}
+            isGenerating={project.status === 'generating'}
           />
         ) : (
           <div className="rounded-xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center text-sm text-neutral-400">
