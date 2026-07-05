@@ -1,0 +1,112 @@
+import { z } from 'zod';
+import { DEFAULT_PAGE_KEYS, TONES } from './constants';
+
+/**
+ * SiteConfig ─ studio が書き、site-template が読み、CI が運ぶ三者契約。
+ * 生成サイトはこのJSONだけを入力として静的ビルドされる（fetch等の外部依存なし。
+ * 唯一の例外はお知らせ欄のクライアントサイドフェッチで、その接続情報も本契約に含む）。
+ */
+
+/** ページを構成するセクション（テンプレのコンポーネントと1:1対応） */
+export const sectionSchema = z.object({
+  /** site-kit のセクションコンポーネント種別 */
+  type: z.enum([
+    'hero',
+    'services',
+    'pricing',
+    'profile',
+    'testimonials',
+    'access',
+    'contact',
+    'faq',
+    'news',
+    'richtext',
+    'cta',
+  ]),
+  heading: z.string().optional(),
+  body: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        title: z.string(),
+        body: z.string().optional(),
+        /** 価格・日付・資格名など項目の補足 */
+        meta: z.string().optional(),
+        /** Supabase Storage 上の画像パス（ビジュアル配置ステップで割当） */
+        imagePath: z.string().optional(),
+      }),
+    )
+    .optional(),
+});
+export type Section = z.infer<typeof sectionSchema>;
+
+export const sitePageSchema = z.object({
+  key: z.enum(DEFAULT_PAGE_KEYS),
+  path: z.string(),
+  title: z.string(),
+  description: z.string(),
+  sections: z.array(sectionSchema),
+});
+export type SitePage = z.infer<typeof sitePageSchema>;
+
+export const siteConfigSchema = z.object({
+  version: z.literal(1),
+  meta: z.object({
+    slug: z.string().regex(/^[a-z0-9-]+$/),
+    siteName: z.string(),
+    locale: z.literal('ja'),
+    /** 本番URL（OGP・canonical・sitemap生成に使用） */
+    baseUrl: z.string().url(),
+  }),
+  business: z.object({
+    officeName: z.string(),
+    officeNameKana: z.string(),
+    industryLabel: z.string(),
+    /** JSON-LD @type: LegalService 等のエンティティ記述に使用 */
+    description: z.string(),
+    address: z.string(),
+    phone: z.string(),
+    businessHours: z.string(),
+    closedDays: z.string(),
+    serviceAreaCities: z.array(z.string()),
+    representativeName: z.string().optional(),
+    certifications: z.string().optional(),
+    foundedYear: z.string().optional(),
+    gbpUrl: z.string().optional(),
+  }),
+  design: z.object({
+    templateId: z.string(),
+    tone: z.enum(TONES),
+    primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+    logoPath: z.string().optional(),
+  }),
+  cta: z.object({
+    primaryAction: z.string(),
+    label: z.string(),
+    phone: z.string().optional(),
+    bookingToolUrl: z.string().optional(),
+  }),
+  aeo: z.object({
+    positioningStatement: z.string(),
+    searchKeywords: z.array(z.string()),
+    /** llms.txt にそのまま出力するAIクローラ向けサイト要約 */
+    llmsSummary: z.string(),
+    faq: z.array(z.object({ question: z.string(), answer: z.string() })),
+  }),
+  pages: z.array(sitePageSchema),
+  announcements: z.object({
+    /** 公開ビルド時に焼き込む時点スナップショット（フォールバック兼AEO用） */
+    baked: z.array(
+      z.object({
+        id: z.string(),
+        body: z.string(),
+        publishedAt: z.string(),
+      }),
+    ),
+    /** クライアントサイドで最新分を上書き取得するための接続情報（anonキーは公開前提） */
+    supabaseUrl: z.string().url(),
+    supabaseAnonKey: z.string(),
+    projectId: z.string().uuid(),
+  }),
+});
+export type SiteConfig = z.infer<typeof siteConfigSchema>;
