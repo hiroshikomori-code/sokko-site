@@ -27,7 +27,7 @@ export const basicsSchema = z.object({
   officeNameKana: requiredText('ふりがな', 100),
   industryType: z.enum(
     Object.keys(INDUSTRY_TYPES) as [keyof typeof INDUSTRY_TYPES, ...(keyof typeof INDUSTRY_TYPES)[]],
-    { required_error: '士業種別を選択してください' },
+    { errorMap: () => ({ message: '士業種別を選択してください' }) },
   ),
   businessSummary: requiredText('業務内容の一言説明', 200),
   address: requiredText('所在地', 200),
@@ -66,7 +66,7 @@ export const targetSchema = z.object({
 export const ctaSchema = z.object({
   primaryAction: z.enum(
     Object.keys(CTA_TYPES) as [keyof typeof CTA_TYPES, ...(keyof typeof CTA_TYPES)[]],
-    { required_error: '一番してほしい行動を選択してください' },
+    { errorMap: () => ({ message: '一番してほしい行動を選択してください' }) },
   ),
   bookingToolUrl: urlField.optional().or(z.literal('').transform(() => undefined)),
 });
@@ -81,7 +81,9 @@ export const pagesSchema = z.object({
 
 /** F. 雰囲気（§10-F）— referenceUrls は必須燃料 */
 export const moodSchema = z.object({
-  tone: z.enum(TONES, { required_error: 'トーンを選択してください' }),
+  tone: z.enum(TONES, {
+    errorMap: () => ({ message: 'トーンを選択してください' }),
+  }),
   mainColor: z
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/, 'メインカラーを選択してください'),
@@ -115,7 +117,7 @@ export const aeoSchema = z.object({
 /** I. 運用（§10-I） */
 export const operationSchema = z.object({
   domainType: z.enum(['existing', 'new'], {
-    required_error: 'ドメインの種別を選択してください',
+    errorMap: () => ({ message: 'ドメインの種別を選択してください' }),
   }),
   domainName: optionalText(100),
   desiredLaunchDate: requiredText('公開希望時期', 50),

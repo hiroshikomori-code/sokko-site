@@ -3,7 +3,19 @@
 --            line_links / generation_jobs / quality_checks / audit_log
 
 -- ============================================================
+-- users: operator / approver（Supabase Authと1:1）
+-- ============================================================
+create table public.users (
+  id uuid primary key references auth.users (id) on delete cascade,
+  email text not null unique,
+  name text not null,
+  role text not null check (role in ('operator', 'approver')),
+  created_at timestamptz not null default now()
+);
+
+-- ============================================================
 -- ヘルパー: 社内スタッフ（users登録済みの認証ユーザー）判定
+-- （usersテーブル定義後に作成すること: language sqlは本体を即時検証する）
 -- ============================================================
 create or replace function public.is_staff()
 returns boolean
@@ -14,17 +26,6 @@ set search_path = public
 as $$
   select exists (select 1 from public.users where id = auth.uid());
 $$;
-
--- ============================================================
--- users: operator / approver（Supabase Authと1:1）
--- ============================================================
-create table public.users (
-  id uuid primary key references auth.users (id) on delete cascade,
-  email text not null unique,
-  name text not null,
-  role text not null check (role in ('operator', 'approver')),
-  created_at timestamptz not null default now()
-);
 
 -- ============================================================
 -- templates: 業種テンプレ（MVPは士業1行）
