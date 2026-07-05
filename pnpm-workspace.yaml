@@ -2,5 +2,9 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
-  sharp: true
-  unrs-resolver: true
+  sharp: set this to true or false
+  unrs-resolver: set this to true or false
+# pnpm 9/10/11 いずれでも解釈できる書き方にする（Vercel等のCI互換のため）
+onlyBuiltDependencies:
+  - sharp
+  - unrs-resolver
