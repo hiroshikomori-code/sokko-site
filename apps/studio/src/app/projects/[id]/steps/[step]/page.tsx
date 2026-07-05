@@ -1,11 +1,19 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { META_PAGE_KEY } from '@sokko/shared';
 import { getCurrentUser } from '@/lib/auth';
 import { getProjectForStep } from '@/lib/projects';
+import { createClient } from '@/lib/supabase/server';
 import { Stepper } from '@/components/stepper';
 import { Step1Form } from '@/components/steps/step1-form';
 import { Step2Template } from '@/components/steps/step2-template';
 import { Step3Generate } from '@/components/steps/step3-generate';
+import { Step4Visual } from '@/components/steps/step4-visual';
+import { Step5Aeo } from '@/components/steps/step5-aeo';
+import { Step6Review } from '@/components/steps/step6-review';
+import { Step7Publish } from '@/components/steps/step7-publish';
+import { Step8Delivery } from '@/components/steps/step8-delivery';
+import type { QualityResult } from '@/lib/quality/gate';
 
 const STEP_TITLES: Record<number, { title: string; description: string }> = {
   1: {
@@ -15,7 +23,7 @@ const STEP_TITLES: Record<number, { title: string; description: string }> = {
   },
   2: { title: 'テンプレート・デザイン選択', description: '業種の標準デザインから調整します。' },
   3: { title: 'コンテンツ自動生成', description: 'AIが全ページの文章を作成します。' },
-  4: { title: 'ビジュアル配置', description: '写真をアップロードして配置します。' },
+  4: { title: 'ビジュアル配置', description: '写真の取り扱いを確認します。' },
   5: { title: 'AEO/GEO最適化', description: 'AIに見つけてもらう設定は自動で適用されています。' },
   6: { title: 'プレビュー・品質チェック・承認', description: '公開前の最終確認です。' },
   7: { title: '公開', description: '承認済みのサイトを公開します。' },
@@ -38,6 +46,117 @@ export default async function StepPage({
 
   const project = await getProjectForStep(id, step);
   const meta = STEP_TITLES[step];
+  const supabase = await createClient();
+
+  let content: React.ReactNode;
+  switch (step) {
+    case 1:
+      content = (
+        <Step1Form
+          projectId={project.id}
+          initialInput={project.input}
+          readOnly={!['draft', 'revising'].includes(project.status)}
+        />
+      );
+      break;
+    case 2:
+      content = (
+        <Step2Template
+          projectId={project.id}
+          input={project.input}
+          currentTemplateId={project.template_id}
+        />
+      );
+      break;
+    case 3:
+      content = (
+        <Step3Generate
+          projectId={project.id}
+          isGenerating={project.status === 'generating'}
+        />
+      );
+      break;
+    case 4:
+      content = <Step4Visual projectId={project.id} />;
+      break;
+    case 5: {
+      const { data: metaPage } = await supabase
+        .from('pages')
+        .select('content')
+        .eq('project_id', project.id)
+        .eq('page_key', META_PAGE_KEY)
+        .maybeSingle();
+      content = (
+        <Step5Aeo
+          projectId={project.id}
+          input={project.input}
+          metaContent={metaPage?.content ?? null}
+        />
+      );
+      break;
+    }
+    case 6: {
+      const [{ data: check }, { data: pages }, { data: full }] = await Promise.all([
+        supabase
+          .from('quality_checks')
+          .select('passed, result, checked_at')
+          .eq('project_id', project.id)
+          .order('checked_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('pages')
+          .select('page_key, needs_revision')
+          .eq('project_id', project.id)
+          .order('page_key'),
+        supabase
+          .from('projects')
+          .select('approved_at')
+          .eq('id', project.id)
+          .single(),
+      ]);
+      content = (
+        <Step6Review
+          projectId={project.id}
+          role={user.role}
+          status={project.status}
+          previewUrl={project.preview_url}
+          latestCheck={
+            check
+              ? {
+                  passed: check.passed,
+                  result: check.result as QualityResult,
+                  checked_at: check.checked_at,
+                }
+              : null
+          }
+          pages={(pages ?? []) as { page_key: string; needs_revision: boolean }[]}
+          approvedAt={full?.approved_at ?? null}
+        />
+      );
+      break;
+    }
+    case 7: {
+      const { data: full } = await supabase
+        .from('projects')
+        .select('approved_at')
+        .eq('id', project.id)
+        .single();
+      content = (
+        <Step7Publish
+          projectId={project.id}
+          status={project.status}
+          approvedAt={full?.approved_at ?? null}
+          deployUrl={project.deploy_url}
+        />
+      );
+      break;
+    }
+    default:
+      content = (
+        <Step8Delivery deployUrl={project.deploy_url} input={project.input} />
+      );
+  }
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-8">
@@ -61,30 +180,7 @@ export default async function StepPage({
       </h1>
       <p className="mt-1 text-sm text-neutral-500">{meta.description}</p>
 
-      <div className="mt-6">
-        {step === 1 ? (
-          <Step1Form
-            projectId={project.id}
-            initialInput={project.input}
-            readOnly={!['draft', 'revising'].includes(project.status)}
-          />
-        ) : step === 2 ? (
-          <Step2Template
-            projectId={project.id}
-            input={project.input}
-            currentTemplateId={project.template_id}
-          />
-        ) : step === 3 ? (
-          <Step3Generate
-            projectId={project.id}
-            isGenerating={project.status === 'generating'}
-          />
-        ) : (
-          <div className="rounded-xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center text-sm text-neutral-400">
-            このステップは実装中です（タスク#{step >= 6 ? 6 : step}で実装予定）
-          </div>
-        )}
-      </div>
+      <div className="mt-6">{content}</div>
     </main>
   );
 }
