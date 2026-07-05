@@ -6,7 +6,8 @@ import { runGeneration } from '@/lib/generation/engine';
 import { inputHash } from '@/lib/generation/hash';
 
 // 1ページの生成→批評→改稿ループを1関数呼び出しで完結させる（計画4章）
-export const maxDuration = 800;
+// Vercel Hobbyプラン（Fluid compute）の上限に合わせる。長時間化するようならPro化を検討
+export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   const user = await getCurrentUser();
