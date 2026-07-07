@@ -6,6 +6,7 @@ import {
   Faq,
   Hero,
   News,
+  NewsDigest,
   Pricing,
   Profile,
   RichText,
@@ -26,6 +27,7 @@ const SECTION_COMPONENTS: Record<
   contact: Contact,
   faq: Faq,
   news: News,
+  news_digest: NewsDigest,
   richtext: RichText,
   cta: Cta,
 };

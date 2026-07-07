@@ -56,12 +56,25 @@ export function buildSiteConfig(
     const row = pageRows.find((p) => p.page_key === key);
     if (!row) throw new Error(`ページ「${PAGE_LABELS[key]}」が未生成です`);
     const content = pageContentSchema.parse(row.content);
+    let sections = content.sections;
+
+    // トップにはお知らせ最新3件＋一覧導線を自動挿入（newsページがある場合のみ）。
+    // 構造はテンプレの責務なので、AI生成物には含めずここで決める（再現性＞自由度）
+    if (key === 'home' && input.pages.pageKeys.includes('news')) {
+      const heroIndex = sections.findIndex((s) => s.type === 'hero');
+      sections = [
+        ...sections.slice(0, heroIndex + 1),
+        { type: 'news_digest', heading: 'お知らせ' },
+        ...sections.slice(heroIndex + 1),
+      ];
+    }
+
     pages.push({
       key,
       path: PAGE_PATHS[key],
       title: content.title,
       description: content.description,
-      sections: content.sections,
+      sections,
     });
   }
 

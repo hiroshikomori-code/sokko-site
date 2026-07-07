@@ -10,22 +10,16 @@ import { NewsList, type NewsItem } from '@sokko/site-kit';
  * 取得失敗時は焼き込みのまま（Supabase障害でもサイトは壊れない）。
  * 生成サイト内で唯一の動的部品。
  */
-export function LiveNews({
-  section,
-  config,
-}: {
-  section: Section;
-  config: SiteConfig;
-}) {
+function useLiveAnnouncements(config: SiteConfig, limit: number): NewsItem[] {
   const { baked, supabaseUrl, supabaseAnonKey, projectId } =
     config.announcements;
-  const [items, setItems] = useState<NewsItem[]>(baked);
+  const [items, setItems] = useState<NewsItem[]>(baked.slice(0, limit));
 
   useEffect(() => {
     const url =
       `${supabaseUrl}/rest/v1/announcements` +
       `?project_id=eq.${projectId}&published=eq.true` +
-      `&select=id,body,created_at&order=created_at.desc&limit=20`;
+      `&select=id,body,created_at&order=created_at.desc&limit=${limit}`;
     fetch(url, {
       headers: { apikey: supabaseAnonKey, Accept: 'application/json' },
     })
@@ -44,7 +38,19 @@ export function LiveNews({
       .catch(() => {
         // 焼き込み済みの表示を維持
       });
-  }, [supabaseUrl, supabaseAnonKey, projectId]);
+  }, [supabaseUrl, supabaseAnonKey, projectId, limit]);
+
+  return items;
+}
+
+export function LiveNews({
+  section,
+  config,
+}: {
+  section: Section;
+  config: SiteConfig;
+}) {
+  const items = useLiveAnnouncements(config, 20);
 
   return (
     <section className="py-16">
@@ -57,6 +63,38 @@ export function LiveNews({
           {section.heading ?? 'お知らせ'}
         </h2>
         <div className="mt-8">
+          <NewsList items={items} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** トップ用ダイジェスト（最新3件＋一覧導線）のライブ取得版 */
+export function LiveNewsDigest({
+  section,
+  config,
+}: {
+  section: Section;
+  config: SiteConfig;
+}) {
+  const items = useLiveAnnouncements(config, 3);
+
+  return (
+    <section className="border-y border-[var(--sk-line)] bg-[var(--sk-paper-soft)] py-10">
+      <div className="mx-auto w-full max-w-4xl px-5">
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-lg font-bold text-[var(--sk-ink)]">
+            {section.heading ?? 'お知らせ'}
+          </h2>
+          <a
+            href="/news"
+            className="text-sm font-medium text-[var(--sk-primary-strong)] hover:underline"
+          >
+            お知らせ一覧へ →
+          </a>
+        </div>
+        <div className="mt-4">
           <NewsList items={items} />
         </div>
       </div>

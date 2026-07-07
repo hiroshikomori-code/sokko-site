@@ -328,6 +328,33 @@ export function NewsList({ items }: { items: NewsItem[] }) {
   );
 }
 
+/**
+ * トップ用お知らせダイジェスト: 最新3件＋一覧への導線。
+ * site-template側ではライブ取得版（LiveNewsDigest）に差し替えられる。
+ */
+export function NewsDigest({ section, config }: SectionProps) {
+  return (
+    <section className="border-y border-[var(--sk-line)] bg-[var(--sk-paper-soft)] py-10">
+      <div className={container}>
+        <div className="flex items-baseline justify-between">
+          <h2 className="text-lg font-bold text-[var(--sk-ink)]">
+            {section.heading ?? 'お知らせ'}
+          </h2>
+          <a
+            href="/news"
+            className="text-sm font-medium text-[var(--sk-primary-strong)] hover:underline"
+          >
+            お知らせ一覧へ →
+          </a>
+        </div>
+        <div className="mt-4">
+          <NewsList items={config.announcements.baked.slice(0, 3)} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function News({ section, config }: SectionProps) {
   return (
     <section className="py-16">

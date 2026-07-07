@@ -74,6 +74,8 @@ export const SAMPLE_SITE_CONFIG: SiteConfig = {
           heading: '飲食店の経営を、数字の面から支える税理士です。',
           body: '税務顧問・記帳代行・相続税申告まで。大阪市北区・北摂エリアの中小企業を12年間支援してきました。初回相談は無料です。',
         },
+        // 実案件では buildSiteConfig がhero直後に自動挿入する（サンプルは手書きで同等に）
+        { type: 'news_digest', heading: 'お知らせ' },
         {
           type: 'services',
           heading: '取扱業務',

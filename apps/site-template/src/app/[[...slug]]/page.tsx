@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PageRenderer, SiteShell } from '@sokko/site-kit';
 import { loadSiteConfig } from '@/lib/config';
-import { LiveNews } from '@/components/live-news';
+import { LiveNews, LiveNewsDigest } from '@/components/live-news';
 
 const config = loadSiteConfig();
 
@@ -54,7 +54,7 @@ export default async function SitePage({
       <PageRenderer
         page={page}
         config={config}
-        overrides={{ news: LiveNews }}
+        overrides={{ news: LiveNews, news_digest: LiveNewsDigest }}
       />
     </SiteShell>
   );

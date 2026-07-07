@@ -20,6 +20,8 @@ export const sectionSchema = z.object({
     'contact',
     'faq',
     'news',
+    /** トップ用: 最新お知らせ3件＋一覧導線（buildSiteConfigが自動挿入。AIは生成しない） */
+    'news_digest',
     'richtext',
     'cta',
   ]),
