@@ -70,7 +70,18 @@ export async function POST(request: NextRequest) {
         .eq('id', job.id);
     };
 
-    const result = await runGeneration(input, job.page_key, heartbeat);
+    // 差し戻し中のページはコメントを改稿指示としてAIに渡す（計画3.1章）
+    const { data: revisionRow } = await supabase
+      .from('pages')
+      .select('needs_revision, revision_note')
+      .eq('project_id', job.project_id)
+      .eq('page_key', job.page_key)
+      .maybeSingle();
+    const revisionNote = revisionRow?.needs_revision
+      ? revisionRow.revision_note
+      : null;
+
+    const result = await runGeneration(input, job.page_key, heartbeat, revisionNote);
 
     // pages upsert（バージョンを進め、差し戻しフラグを解除）
     const { data: existing } = await supabase

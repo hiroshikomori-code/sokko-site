@@ -59,6 +59,8 @@ export async function runGeneration(
   input: ProjectInput,
   pageKey: string,
   onHeartbeat: () => Promise<void>,
+  /** 差し戻しコメント（承認者の改稿指示）。あれば初稿プロンプトに織り込む（計画3.1章） */
+  revisionNote?: string | null,
 ): Promise<GenerationResult> {
   const client = new Anthropic();
   const usage: TokenUsage = { inputTokens: 0, outputTokens: 0 };
@@ -69,9 +71,16 @@ export async function runGeneration(
   const label = isMeta
     ? 'サイト全体メタ（llms.txt要約・FAQ）'
     : PAGE_LABELS[pageKey as PageKey];
-  const userPrompt = isMeta
+  const basePrompt = isMeta
     ? metaPrompt(input)
     : pagePrompt(input, pageKey as Exclude<PageKey, 'news'>);
+  const userPrompt = revisionNote?.trim()
+    ? `${basePrompt}
+
+## 承認者からの差し戻し指摘（最優先で反映すること）
+前回の生成物はレビューで差し戻されました。以下の指摘を必ず反映してください:
+${revisionNote.trim()}`
+    : basePrompt;
   const system = workerSystemPrompt(input);
 
   const generate = async (
