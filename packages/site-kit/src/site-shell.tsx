@@ -1,4 +1,4 @@
-import { PAGE_LABELS, type SiteConfig } from '@sokko/shared';
+import { NAV_LABELS, type SiteConfig } from '@sokko/shared';
 import { cssVariables } from './tokens';
 
 /**
@@ -39,20 +39,21 @@ export function SiteShell({
           aria-label="サイト内メニュー"
           className="border-t border-[var(--sk-line)] bg-[var(--sk-paper-soft)]"
         >
+          {/* モバイル: 横スクロール / デスクトップ: 折り返し（見切れ防止） */}
           <div className="mx-auto w-full max-w-4xl overflow-x-auto px-5">
-            <ul className="flex min-w-max gap-1 text-sm">
+            <ul className="flex min-w-max gap-1 text-sm sm:min-w-0 sm:flex-wrap">
               {config.pages.map((p) => (
                 <li key={p.key}>
                   <a
                     href={p.path}
                     aria-current={currentPath === p.path ? 'page' : undefined}
-                    className={`block px-3 py-2.5 ${
+                    className={`block whitespace-nowrap px-3 py-2.5 ${
                       currentPath === p.path
                         ? 'font-bold text-[var(--sk-primary-strong)] shadow-[inset_0_-2px_0_var(--sk-primary)]'
                         : 'text-[var(--sk-ink-soft)] hover:text-[var(--sk-ink)]'
                     }`}
                   >
-                    {p.key === 'home' ? 'ホーム' : PAGE_LABELS[p.key]}
+                    {NAV_LABELS[p.key]}
                   </a>
                 </li>
               ))}

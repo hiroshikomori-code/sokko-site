@@ -40,6 +40,18 @@ export const PAGE_LABELS: Record<PageKey, string> = {
   news: 'お知らせ',
 };
 
+/** グローバルナビ用の短い表記（PAGE_LABELSは管理画面用の正式名） */
+export const NAV_LABELS: Record<PageKey, string> = {
+  home: 'ホーム',
+  services: 'サービス',
+  pricing: '料金',
+  about: '事務所紹介',
+  cases: 'お客様の声',
+  access: 'アクセス',
+  contact: 'お問い合わせ',
+  news: 'お知らせ',
+};
+
 export const PAGE_PATHS: Record<PageKey, string> = {
   home: '/',
   services: '/services',
