@@ -25,7 +25,8 @@ export async function startGeneration(projectId: string): Promise<StartResult> {
     .eq('id', projectId)
     .single();
   if (!project) return { ok: false, error: '案件が見つかりません' };
-  if (!['draft', 'revising'].includes(project.status)) {
+  // 'generating' も許可（中断・失敗からの再開。ジョブ獲得の原子性が二重実行を防ぐ）
+  if (!['draft', 'revising', 'generating'].includes(project.status)) {
     return { ok: false, error: 'この状態では生成を開始できません' };
   }
 

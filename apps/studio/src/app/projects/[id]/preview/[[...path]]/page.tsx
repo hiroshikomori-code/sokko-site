@@ -4,12 +4,13 @@ import { PageRenderer, SiteShell } from '@sokko/site-kit';
 import { SAMPLE_SITE_CONFIG } from '@sokko/shared';
 import { getCurrentUser } from '@/lib/auth';
 import { getProject } from '@/lib/projects';
+import { buildAndSaveSiteConfig } from '@/lib/site-config-builder';
 import { PreviewFrame } from '@/components/preview-frame';
 
 /**
  * studio内プレビュー（計画1章: 軽い社内プレビュー）。
  * site-template と同じ site-kit コンポーネント＋同じSiteConfigでレンダリングする。
- * 生成パイプライン完成（タスク#5）までは、生成済みコンテンツが無い場合サンプルを表示。
+ * 生成済みならプロジェクトの実SiteConfigを組み立て、未生成ならサンプルを表示。
  */
 export default async function PreviewPage({
   params,
@@ -23,8 +24,9 @@ export default async function PreviewPage({
   const project = await getProject(id);
   if (!project) redirect('/');
 
-  // TODO(タスク#5): projects/pages から実SiteConfigを組み立てる。それまではサンプル
-  const config = SAMPLE_SITE_CONFIG;
+  const built = await buildAndSaveSiteConfig(id, 'preview');
+  const isSample = !built.ok;
+  const config = built.ok ? built.config : SAMPLE_SITE_CONFIG;
 
   const path = pathParts && pathParts.length > 0 ? `/${pathParts.join('/')}` : '/';
   const page = config.pages.find((p) => p.path === path);
@@ -35,9 +37,11 @@ export default async function PreviewPage({
       <div className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-300 bg-neutral-900 px-4 py-2 text-sm text-white">
         <p>
           プレビュー: {project.name}
-          <span className="ml-2 rounded bg-amber-500/20 px-2 py-0.5 text-xs text-amber-300">
-            サンプルデータ表示中（生成前）
-          </span>
+          {isSample && (
+            <span className="ml-2 rounded bg-amber-500/20 px-2 py-0.5 text-xs text-amber-300">
+              サンプルデータ表示中（生成前: {!built.ok ? built.error : ''}）
+            </span>
+          )}
         </p>
         <Link
           href={`/projects/${id}/steps/${project.current_step}`}
