@@ -73,6 +73,7 @@ export default async function StepPage({
         <Step3Generate
           projectId={project.id}
           isGenerating={project.status === 'generating'}
+          isRevising={project.status === 'revising'}
         />
       );
       break;

@@ -30,10 +30,13 @@ function labelOf(pageKey: string): string {
 export function Step3Generate({
   projectId,
   isGenerating,
+  isRevising,
 }: {
   projectId: string;
   /** projects.status === 'generating' */
   isGenerating: boolean;
+  /** projects.status === 'revising'（差し戻し対応中は再生成ボタンを出す） */
+  isRevising: boolean;
 }) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -222,14 +225,26 @@ export function Step3Generate({
               合計トークン: {totalTokens.toLocaleString()}
             </p>
             {allDone ? (
-              <button
-                type="button"
-                onClick={onComplete}
-                disabled={pending}
-                className="rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
-              >
-                次へ（ビジュアル配置）
-              </button>
+              <div className="flex items-center gap-3">
+                {isRevising && (
+                  <button
+                    type="button"
+                    onClick={onStart}
+                    disabled={pending}
+                    className="rounded-md border border-amber-400 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                  >
+                    差し戻し分を再生成
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={onComplete}
+                  disabled={pending}
+                  className="rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+                >
+                  次へ（ビジュアル配置）
+                </button>
+              </div>
             ) : !anyActive && isGenerating ? (
               <button
                 type="button"
