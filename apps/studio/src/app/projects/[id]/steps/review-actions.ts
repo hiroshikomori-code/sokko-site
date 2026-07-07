@@ -46,7 +46,9 @@ export async function deployPreview(projectId: string): Promise<ActionResult> {
     .eq('id', projectId)
     .single();
   if (!project) return { ok: false, error: '案件が見つかりません' };
-  if (!['draft', 'revising', 'review'].includes(project.status)) {
+  // published も許可: 公開後の差し替え→プレビュー確認→再承認→再公開のサイクル
+  // （本番サイトはこの操作では変わらない。反映はStep7の再公開時）
+  if (!['draft', 'revising', 'review', 'published'].includes(project.status)) {
     return { ok: false, error: 'この状態ではデプロイできません' };
   }
 

@@ -13,9 +13,18 @@ export type StaffUser = {
  */
 export async function getCurrentUser(): Promise<StaffUser | null> {
   const supabase = await createClient();
-  const {
+  let {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // アクセストークン失効直後のレース対策: 明示リフレッシュして1回だけ再試行
+  // （これが無いと、失効後最初のServer Actionが誤ってログアウト扱いになる）
+  if (!user) {
+    await supabase.auth.refreshSession();
+    ({
+      data: { user },
+    } = await supabase.auth.getUser());
+  }
   if (!user) return null;
 
   const { data } = await supabase

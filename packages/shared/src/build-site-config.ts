@@ -24,6 +24,8 @@ export type BuildSiteConfigOptions = {
   templateId: string;
   bakedAnnouncements: { id: string; body: string; publishedAt: string }[];
   logoPath?: string;
+  /** 画像スロットの公開URL（Step4で割当。未設定は写真なしデザイン） */
+  images?: { hero?: string; representative?: string; office?: string };
 };
 
 /**
@@ -92,6 +94,7 @@ export function buildSiteConfig(
       primaryColor: input.mood.mainColor,
       logoPath: opts.logoPath,
     },
+    images: opts.images,
     cta: {
       primaryAction: input.cta.primaryAction,
       label:

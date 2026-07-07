@@ -76,9 +76,21 @@ export default async function StepPage({
         />
       );
       break;
-    case 4:
-      content = <Step4Visual projectId={project.id} />;
+    case 4: {
+      const { data: full } = await supabase
+        .from('projects')
+        .select('visuals')
+        .eq('id', project.id)
+        .single();
+      content = (
+        <Step4Visual
+          projectId={project.id}
+          initialVisuals={(full?.visuals ?? {}) as Record<string, string>}
+          readOnly={project.status === 'generating'}
+        />
+      );
       break;
+    }
     case 5: {
       const { data: metaPage } = await supabase
         .from('pages')

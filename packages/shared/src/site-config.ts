@@ -80,6 +80,14 @@ export const siteConfigSchema = z.object({
     primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
     logoPath: z.string().optional(),
   }),
+  /** 画像スロット（公開URL）。未設定スロットは写真なしデザインに自動フォールバック */
+  images: z
+    .object({
+      hero: z.string().url().optional(),
+      representative: z.string().url().optional(),
+      office: z.string().url().optional(),
+    })
+    .optional(),
   cta: z.object({
     primaryAction: z.string(),
     label: z.string(),

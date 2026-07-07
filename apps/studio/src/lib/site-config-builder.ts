@@ -17,7 +17,7 @@ export async function buildAndSaveSiteConfig(
 
   const { data: project } = await supabase
     .from('projects')
-    .select('id, slug, input, template_id, preview_url, deploy_url')
+    .select('id, slug, input, template_id, preview_url, deploy_url, visuals')
     .eq('id', projectId)
     .single();
   if (!project) return { ok: false, error: '案件が見つかりません' };
@@ -64,6 +64,22 @@ export async function buildAndSaveSiteConfig(
       ? (project.deploy_url ?? fallbackUrl)
       : (project.preview_url ?? fallbackUrl);
 
+  // 画像スロット: bucket相対パス → 公開URL
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const publicUrl = (path?: string) =>
+    path ? `${supabaseUrl}/storage/v1/object/public/assets/${path}` : undefined;
+  const visuals = (project.visuals ?? {}) as {
+    logo?: string;
+    hero?: string;
+    representative?: string;
+    office?: string;
+  };
+  const images = {
+    hero: publicUrl(visuals.hero),
+    representative: publicUrl(visuals.representative),
+    office: publicUrl(visuals.office),
+  };
+
   try {
     const config = buildSiteConfig(parsed.data, pages ?? [], {
       slug,
@@ -77,6 +93,8 @@ export async function buildAndSaveSiteConfig(
         body: a.body,
         publishedAt: a.created_at,
       })),
+      logoPath: publicUrl(visuals.logo),
+      images,
     });
 
     const { error } = await supabase

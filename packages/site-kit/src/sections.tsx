@@ -29,6 +29,36 @@ function CtaButton({ config }: { config: SiteConfig }) {
 }
 
 export function Hero({ section, config }: SectionProps) {
+  const heroImage = config.images?.hero;
+
+  if (heroImage) {
+    // 写真あり: 暗めのオーバーレイで文字コントラストを担保（アクセシビリティ要件）
+    return (
+      <section
+        className="relative bg-cover bg-center py-24"
+        style={{ backgroundImage: `url(${heroImage})` }}
+      >
+        <div className="absolute inset-0 bg-[rgba(18,20,26,0.62)]" aria-hidden />
+        <div className={`${container} relative`}>
+          <p className="text-sm font-semibold tracking-wide text-white/80">
+            {config.business.serviceAreaCities[0] ?? ''}の{config.business.industryLabel}
+          </p>
+          <h1 className="mt-3 max-w-2xl text-3xl font-bold leading-snug text-white sm:text-4xl">
+            {section.heading}
+          </h1>
+          {section.body && (
+            <p className="mt-5 max-w-2xl leading-relaxed text-white/90">
+              {section.body}
+            </p>
+          )}
+          <div className="mt-8">
+            <CtaButton config={config} />
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="bg-[var(--sk-primary-soft)] py-20">
       <div className={container}>
@@ -117,11 +147,23 @@ export function Pricing({ section }: SectionProps) {
 
 export function Profile({ section, config }: SectionProps) {
   const b = config.business;
+  const photo = config.images?.representative;
   return (
     <section className="py-16">
       <div className={container}>
         {section.heading && <SectionHeading text={section.heading} />}
-        <div className="mt-8 rounded-lg border border-[var(--sk-line)] bg-[var(--sk-paper)] p-8">
+        <div className="mt-8 flex flex-col gap-6 rounded-lg border border-[var(--sk-line)] bg-[var(--sk-paper)] p-8 sm:flex-row">
+          {photo && (
+            <img
+              src={photo}
+              alt={`${b.representativeName ?? b.officeName} の写真`}
+              width={160}
+              height={160}
+              loading="lazy"
+              className="h-40 w-40 shrink-0 rounded-lg object-cover"
+            />
+          )}
+          <div className="min-w-0">
           {b.representativeName && (
             <p className="text-lg font-bold text-[var(--sk-ink)]">
               {b.representativeName}
@@ -138,6 +180,7 @@ export function Profile({ section, config }: SectionProps) {
               {section.body}
             </p>
           )}
+          </div>
         </div>
       </div>
     </section>
@@ -172,10 +215,19 @@ export function Testimonials({ section }: SectionProps) {
 
 export function Access({ section, config }: SectionProps) {
   const b = config.business;
+  const officePhoto = config.images?.office;
   return (
     <section className="py-16">
       <div className={container}>
         {section.heading && <SectionHeading text={section.heading} />}
+        {officePhoto && (
+          <img
+            src={officePhoto}
+            alt={`${b.officeName}の外観`}
+            loading="lazy"
+            className="mt-8 max-h-80 w-full rounded-lg object-cover"
+          />
+        )}
         <dl className="mt-8 divide-y divide-[var(--sk-line)] overflow-hidden rounded-lg border border-[var(--sk-line)] bg-[var(--sk-paper)] text-sm">
           {[
             ['所在地', b.address],

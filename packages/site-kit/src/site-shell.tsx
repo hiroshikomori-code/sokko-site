@@ -21,7 +21,14 @@ export function SiteShell({
     >
       <header className="border-b border-[var(--sk-line)] bg-[var(--sk-paper)]">
         <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-5 py-4">
-          <a href="/" className="text-lg font-bold text-[var(--sk-ink)]">
+          <a href="/" className="flex items-center gap-3 text-lg font-bold text-[var(--sk-ink)]">
+            {config.design.logoPath && (
+              <img
+                src={config.design.logoPath}
+                alt=""
+                className="h-9 w-auto"
+              />
+            )}
             {config.business.officeName}
           </a>
           <p className="hidden text-sm text-[var(--sk-ink-soft)] sm:block">
