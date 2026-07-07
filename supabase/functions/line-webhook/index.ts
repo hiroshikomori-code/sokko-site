@@ -71,11 +71,11 @@ async function handleEvent(projectId: string, event: LineEvent): Promise<void> {
   const userId = event.source?.userId;
   const replyToken = event.replyToken;
 
-  // 友だち追加 → 登録案内（userIdを含めて担当者が登録できるように）
+  // 友だち追加 → 登録案内（userIdを提示して担当者がline_linksに登録できるように）
   if (event.type === 'follow') {
     await reply(
       replyToken,
-      '友だち追加ありがとうございます。お知らせ更新のご利用には担当者による登録が必要です。担当者へご連絡ください。',
+      `友だち追加ありがとうございます。お知らせ更新のご利用には担当者による登録が必要です。\n\nお手数ですが、次の「登録用ID」を担当者へお伝えください。\n登録用ID: ${userId ?? '取得できませんでした'}`,
     );
     return;
   }
@@ -92,7 +92,7 @@ async function handleEvent(projectId: string, event: LineEvent): Promise<void> {
   if (!link) {
     await reply(
       replyToken,
-      'このアカウントは更新用に登録されていません。担当者にご連絡ください。',
+      `このアカウントは更新用に登録されていません。\n\n次の「登録用ID」を担当者へお伝えください。\n登録用ID: ${userId}`,
     );
     return;
   }
