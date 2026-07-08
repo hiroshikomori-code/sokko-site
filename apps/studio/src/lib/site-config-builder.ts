@@ -17,7 +17,9 @@ export async function buildAndSaveSiteConfig(
 
   const { data: project } = await supabase
     .from('projects')
-    .select('id, slug, input, template_id, preview_url, deploy_url, visuals')
+    .select(
+      'id, slug, input, template_id, preview_url, deploy_url, visuals, custom_domain',
+    )
     .eq('id', projectId)
     .single();
   if (!project) return { ok: false, error: '案件が見つかりません' };
@@ -56,12 +58,14 @@ export async function buildAndSaveSiteConfig(
     (template?.design_tokens as { templateId?: string } | null)?.templateId ??
     'shigyo-v1';
 
-  // baseUrl: 実デプロイURLがあればそれを、無ければworkers.devの規約URLを仮置き
+  // baseUrl: 独自ドメイン > 実デプロイURL > workers.devの規約URL（仮置き）
   // （初回デプロイ後にActionsが実URLを書き戻すので、以後のビルドで正しくなる）
   const fallbackUrl = `https://site-${slug}${env === 'preview' ? '-preview' : ''}.workers.dev`;
   const baseUrl =
     env === 'production'
-      ? (project.deploy_url ?? fallbackUrl)
+      ? project.custom_domain
+        ? `https://${project.custom_domain}`
+        : (project.deploy_url ?? fallbackUrl)
       : (project.preview_url ?? fallbackUrl);
 
   // 画像スロット: bucket相対パス → 公開URL

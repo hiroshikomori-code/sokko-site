@@ -10,3 +10,4 @@ dist/
 .DS_Store
 .env*
 apps/site-template/wrangler.jsonc
+apps/site-template/deploy-meta.json

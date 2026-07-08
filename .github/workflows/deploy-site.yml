@@ -67,6 +67,13 @@ jobs:
         run: |
           NAME="site-${{ steps.slug.outputs.slug }}"
           if [ "${{ inputs.env }}" = "preview" ]; then NAME="${NAME}-preview"; fi
+          DOMAIN=$(node -p "JSON.parse(require('fs').readFileSync('deploy-meta.json','utf8')).customDomain ?? ''")
+          # 独自ドメインは本番のみ接続（Cloudflareにゾーン追加済みであることが前提）
+          ROUTES=""
+          if [ "${{ inputs.env }}" = "production" ] && [ -n "$DOMAIN" ]; then
+            ROUTES=", \"routes\": [{ \"pattern\": \"${DOMAIN}\", \"custom_domain\": true }]"
+            echo "custom_domain=${DOMAIN}" >> "$GITHUB_ENV"
+          fi
           cat > wrangler.jsonc <<EOF
           {
             "name": "${NAME}",
@@ -74,7 +81,7 @@ jobs:
             "assets": {
               "directory": "./out",
               "not_found_handling": "404-page"
-            }
+            }${ROUTES}
           }
           EOF
           echo "worker_name=${NAME}" >> "$GITHUB_ENV"
@@ -87,7 +94,11 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           pnpm dlx wrangler@4 deploy 2>&1 | tee deploy.log
-          URL=$(grep -oE 'https://[a-zA-Z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          if [ -n "${custom_domain:-}" ]; then
+            URL="https://${custom_domain}"
+          else
+            URL=$(grep -oE 'https://[a-zA-Z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          fi
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
 
       - name: Update project record in Supabase

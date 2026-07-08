@@ -32,7 +32,7 @@ async function rest(path) {
 }
 
 const [project] = await rest(
-  `projects?id=eq.${projectId}&select=id,name,slug,input,site_config`,
+  `projects?id=eq.${projectId}&select=id,name,slug,input,site_config,custom_domain`,
 );
 if (!project) {
   console.error(`project ${projectId} not found`);
@@ -46,4 +46,9 @@ if (!project.site_config || Object.keys(project.site_config).length === 0) {
 }
 
 writeFileSync(outPath, JSON.stringify(project.site_config, null, 2));
+// ワークフローが読むメタ情報（独自ドメイン等）
+writeFileSync(
+  'deploy-meta.json',
+  JSON.stringify({ customDomain: project.custom_domain ?? null }),
+);
 console.log(`SiteConfig written to ${outPath} (project: ${project.name})`);

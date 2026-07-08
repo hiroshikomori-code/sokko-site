@@ -1,15 +1,18 @@
 import Link from 'next/link';
 import type { ProjectInputDraft } from '@sokko/shared';
+import { DomainSettings } from './domain-settings';
 
-/** Step8: 納品（§9-8）。公開URL＋簡易マニュアル＋LINE更新の使い方 */
+/** Step8: 納品（§9-8）。公開URL＋簡易マニュアル＋LINE更新の使い方＋独自ドメイン */
 export function Step8Delivery({
   projectId,
   deployUrl,
   input,
+  customDomain,
 }: {
   projectId: string;
   deployUrl: string | null;
   input: ProjectInputDraft;
+  customDomain: string | null;
 }) {
   return (
     <div className="space-y-6">
@@ -27,11 +30,22 @@ export function Step8Delivery({
         ) : (
           <p className="mt-2 text-sm text-neutral-500">まだ公開されていません（Step7で公開）</p>
         )}
-        <p className="mt-3 text-xs text-neutral-500">
-          独自ドメイン（{input.operation?.domainName || '未定'}）の接続はひろしさんが対応します。
-          公開URLをそのままお客様に案内しても問題ありません。
-        </p>
+        {customDomain && (
+          <p className="mt-2 text-sm">
+            独自ドメイン:{' '}
+            <a
+              href={`https://${customDomain}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-700 underline"
+            >
+              https://{customDomain}
+            </a>
+          </p>
+        )}
       </section>
+
+      <DomainSettings projectId={projectId} currentDomain={customDomain} />
 
       <section className="rounded-xl border border-neutral-200 bg-white p-6">
         <h3 className="text-sm font-bold text-neutral-900">お客様への納品案内（そのまま送れる文面）</h3>

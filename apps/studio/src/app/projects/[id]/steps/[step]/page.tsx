@@ -165,14 +165,21 @@ export default async function StepPage({
       );
       break;
     }
-    default:
+    default: {
+      const { data: full } = await supabase
+        .from('projects')
+        .select('custom_domain')
+        .eq('id', project.id)
+        .single();
       content = (
         <Step8Delivery
           projectId={project.id}
           deployUrl={project.deploy_url}
           input={project.input}
+          customDomain={full?.custom_domain ?? null}
         />
       );
+    }
   }
 
   return (
