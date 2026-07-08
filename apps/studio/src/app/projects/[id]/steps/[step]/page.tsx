@@ -167,7 +167,11 @@ export default async function StepPage({
     }
     default:
       content = (
-        <Step8Delivery deployUrl={project.deploy_url} input={project.input} />
+        <Step8Delivery
+          projectId={project.id}
+          deployUrl={project.deploy_url}
+          input={project.input}
+        />
       );
   }
 

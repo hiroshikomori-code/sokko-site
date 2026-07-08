@@ -1,10 +1,13 @@
+import Link from 'next/link';
 import type { ProjectInputDraft } from '@sokko/shared';
 
 /** Step8: 納品（§9-8）。公開URL＋簡易マニュアル＋LINE更新の使い方 */
 export function Step8Delivery({
+  projectId,
   deployUrl,
   input,
 }: {
+  projectId: string;
   deployUrl: string | null;
   input: ProjectInputDraft;
 }) {
@@ -50,6 +53,16 @@ URL: ${deployUrl ?? '（公開後に記載）'}
 
       <section className="rounded-xl border border-neutral-200 bg-white p-6">
         <h3 className="text-sm font-bold text-neutral-900">運用メモ（社内向け）</h3>
+        <p className="mt-2 text-sm text-neutral-600">
+          お知らせの代理投稿・非公開化は{' '}
+          <Link
+            href={`/projects/${projectId}/announcements`}
+            className="text-blue-700 underline"
+          >
+            お知らせ管理
+          </Link>{' '}
+          から行えます（LINE未設定のお客様はこちらで運用）。
+        </p>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-neutral-600">
           <li>店主のLINEユーザーIDの登録（line_links）が完了しているか確認</li>
           <li>Googleビジネスプロフィール{input.aeo?.hasGbp ? '（登録済み）' : '（未登録 → 登録を案内）'}にサイトURLを設定</li>

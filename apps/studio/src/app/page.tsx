@@ -56,10 +56,10 @@ export default async function HomePage() {
 
       <ul className="mt-4 divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
         {(projects ?? []).map((p) => (
-          <li key={p.id}>
+          <li key={p.id} className="flex items-center hover:bg-neutral-50">
             <Link
               href={`/projects/${p.id}/steps/${p.current_step}`}
-              className="flex items-center justify-between px-5 py-4 hover:bg-neutral-50"
+              className="flex min-w-0 flex-1 items-center justify-between px-5 py-4"
             >
               <div>
                 <p className="font-medium text-neutral-900">{p.name}</p>
@@ -70,6 +70,12 @@ export default async function HomePage() {
               <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-700">
                 {STATUS_LABELS[p.status] ?? p.status}
               </span>
+            </Link>
+            <Link
+              href={`/projects/${p.id}/announcements`}
+              className="mr-4 shrink-0 rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100"
+            >
+              お知らせ管理
             </Link>
           </li>
         ))}
