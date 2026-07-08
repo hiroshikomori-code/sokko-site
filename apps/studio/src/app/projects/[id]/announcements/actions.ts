@@ -71,3 +71,37 @@ export async function toggleAnnouncement(
   revalidatePath(`/projects/${projectId}/announcements`);
   return { ok: true };
 }
+
+/** お知らせ本文の編集（LINE投稿の誤字修正等も可能）。正規化は投稿時と同一 */
+export async function updateAnnouncement(
+  projectId: string,
+  announcementId: string,
+  body: string,
+): Promise<AnnouncementResult> {
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+
+  const normalized = body
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g, '')
+    .trim()
+    .slice(0, 500);
+  if (!normalized) return { ok: false, error: 'お知らせの本文を入力してください' };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('announcements')
+    .update({ body: normalized })
+    .eq('id', announcementId)
+    .eq('project_id', projectId);
+  if (error) return { ok: false, error: '更新に失敗しました' };
+
+  await supabase.from('audit_log').insert({
+    actor_id: user.id,
+    project_id: projectId,
+    action: 'announcement_edited',
+    detail: { announcementId },
+  });
+  revalidatePath(`/projects/${projectId}/announcements`);
+  return { ok: true };
+}

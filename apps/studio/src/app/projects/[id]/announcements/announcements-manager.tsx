@@ -2,7 +2,11 @@
 
 import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { postAnnouncement, toggleAnnouncement } from './actions';
+import {
+  postAnnouncement,
+  toggleAnnouncement,
+  updateAnnouncement,
+} from './actions';
 
 type Announcement = {
   id: string;
@@ -24,6 +28,8 @@ export function AnnouncementsManager({
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editBody, setEditBody] = useState('');
 
   const onPost = (formData: FormData) => {
     startTransition(async () => {
@@ -36,6 +42,20 @@ export function AnnouncementsManager({
       }
       formRef.current?.reset();
       setNotice('投稿しました。数秒〜1分ほどでサイトに反映されます');
+      router.refresh();
+    });
+  };
+
+  const onSaveEdit = (id: string) => {
+    startTransition(async () => {
+      setError(null);
+      const result = await updateAnnouncement(projectId, id, editBody);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setEditingId(null);
+      setNotice('更新しました。数秒〜1分ほどでサイトに反映されます');
       router.refresh();
     });
   };
@@ -91,41 +111,88 @@ export function AnnouncementsManager({
         {announcements.map((a) => (
           <li key={a.id} className="flex items-start gap-3 px-5 py-4">
             <div className="min-w-0 flex-1">
-              <p
-                className={`whitespace-pre-line text-sm ${a.published ? 'text-neutral-900' : 'text-neutral-400 line-through'}`}
-              >
-                {a.body}
-              </p>
-              <p className="mt-1 text-xs text-neutral-500">
-                {new Date(a.created_at).toLocaleString('ja-JP')}
-                <span
-                  className={`ml-2 rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                    a.source === 'line'
-                      ? 'bg-emerald-50 text-emerald-700'
-                      : 'bg-blue-50 text-blue-700'
+              {editingId === a.id ? (
+                <div>
+                  <textarea
+                    rows={3}
+                    maxLength={500}
+                    value={editBody}
+                    onChange={(e) => setEditBody(e.target.value)}
+                    className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
+                  />
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => onSaveEdit(a.id)}
+                      className="rounded-md bg-neutral-900 px-4 py-1.5 text-xs font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+                    >
+                      保存
+                    </button>
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => setEditingId(null)}
+                      className="rounded-md border border-neutral-300 px-4 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100 disabled:opacity-50"
+                    >
+                      キャンセル
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p
+                    className={`whitespace-pre-line text-sm ${a.published ? 'text-neutral-900' : 'text-neutral-400 line-through'}`}
+                  >
+                    {a.body}
+                  </p>
+                  <p className="mt-1 text-xs text-neutral-500">
+                    {new Date(a.created_at).toLocaleString('ja-JP')}
+                    <span
+                      className={`ml-2 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                        a.source === 'line'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'bg-blue-50 text-blue-700'
+                      }`}
+                    >
+                      {a.source === 'line' ? 'LINE' : '管理画面'}
+                    </span>
+                    {!a.published && (
+                      <span className="ml-1 rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-500">
+                        非公開
+                      </span>
+                    )}
+                  </p>
+                </>
+              )}
+            </div>
+            {editingId !== a.id && (
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => {
+                    setEditingId(a.id);
+                    setEditBody(a.body);
+                  }}
+                  className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100 disabled:opacity-50"
+                >
+                  編集
+                </button>
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => onToggle(a.id, !a.published)}
+                  className={`rounded-md border px-3 py-1.5 text-xs disabled:opacity-50 ${
+                    a.published
+                      ? 'border-neutral-300 text-neutral-600 hover:bg-neutral-100'
+                      : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'
                   }`}
                 >
-                  {a.source === 'line' ? 'LINE' : '管理画面'}
-                </span>
-                {!a.published && (
-                  <span className="ml-1 rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-500">
-                    非公開
-                  </span>
-                )}
-              </p>
-            </div>
-            <button
-              type="button"
-              disabled={pending}
-              onClick={() => onToggle(a.id, !a.published)}
-              className={`shrink-0 rounded-md border px-3 py-1.5 text-xs disabled:opacity-50 ${
-                a.published
-                  ? 'border-neutral-300 text-neutral-600 hover:bg-neutral-100'
-                  : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'
-              }`}
-            >
-              {a.published ? '非公開にする' : '公開に戻す'}
-            </button>
+                  {a.published ? '非公開にする' : '公開に戻す'}
+                </button>
+              </div>
+            )}
           </li>
         ))}
         {announcements.length === 0 && (
