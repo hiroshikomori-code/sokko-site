@@ -27,10 +27,15 @@ export async function getProject(id: string): Promise<Project | null> {
   return (data as Project) ?? null;
 }
 
+/** 到達可能な最大ステップ（公開済みは納品情報まで全て閲覧可） */
+export function maxReachableStep(project: Pick<Project, 'status' | 'current_step'>): number {
+  return project.status === 'published' ? 8 : project.current_step;
+}
+
 /**
  * ステップゲート（計画3章: URL直打ちで飛べない）。
  * - 存在しない案件 → 一覧へ
- * - 先のステップへは current_step+1 まで
+ * - 先のステップへは到達済みまで（公開済みはStep8まで開放）
  * - 生成中は Step3 に固定
  */
 export async function getProjectForStep(
@@ -43,8 +48,9 @@ export async function getProjectForStep(
   if (project.status === 'generating' && step !== 3) {
     redirect(`/projects/${id}/steps/3`);
   }
-  if (step > project.current_step) {
-    redirect(`/projects/${id}/steps/${project.current_step}`);
+  const maxStep = maxReachableStep(project);
+  if (step > maxStep) {
+    redirect(`/projects/${id}/steps/${maxStep}`);
   }
   return project;
 }

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { META_PAGE_KEY } from '@sokko/shared';
 import { getCurrentUser } from '@/lib/auth';
-import { getProjectForStep } from '@/lib/projects';
+import { getProjectForStep, maxReachableStep } from '@/lib/projects';
 import { createClient } from '@/lib/supabase/server';
 import { Stepper } from '@/components/stepper';
 import { Step1Form } from '@/components/steps/step1-form';
@@ -187,7 +187,7 @@ export default async function StepPage({
       <div className="mt-4">
         <Stepper
           projectId={project.id}
-          currentStep={project.current_step}
+          currentStep={maxReachableStep(project)}
           activeStep={step}
         />
       </div>
