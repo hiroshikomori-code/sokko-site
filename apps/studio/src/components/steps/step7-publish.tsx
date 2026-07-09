@@ -57,7 +57,15 @@ export function Step7Publish({
             >
               {deployUrl}
             </a>
-            <div className="mt-6">
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={onDeploy}
+                disabled={pending || requested}
+                className="rounded-md border border-neutral-300 px-5 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+              >
+                {requested ? '再公開中…（数分かかります）' : '変更を再公開する'}
+              </button>
               <Link
                 href={`/projects/${projectId}/steps/8`}
                 className="rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white hover:bg-neutral-700"
@@ -65,6 +73,9 @@ export function Step7Publish({
                 納品情報へ
               </Link>
             </div>
+            <p className="mt-3 text-xs text-neutral-500">
+              文言編集・写真差し替え・独自ドメイン設定の反映は「変更を再公開する」で行います
+            </p>
           </>
         ) : (
           <>

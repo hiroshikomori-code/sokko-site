@@ -72,6 +72,12 @@ export default async function HomePage() {
               </span>
             </Link>
             <Link
+              href={`/projects/${p.id}/content`}
+              className="mr-2 shrink-0 rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100"
+            >
+              文言編集
+            </Link>
+            <Link
               href={`/projects/${p.id}/announcements`}
               className="mr-4 shrink-0 rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100"
             >
