@@ -66,7 +66,7 @@ export function DomainSettings({
       <div className="mt-3 space-y-1 text-xs text-neutral-500">
         <p>
           ※ 事前にお客様のドメインを<strong>Cloudflareアカウントにゾーン追加</strong>
-          （ネームサーバーの切替）しておく必要があります — この作業はひろしさんが担当。
+          （ネームサーバーの切替）しておく必要があります — この作業はシステム管理者が担当。
         </p>
         <p>
           ※ 保存 → Step7で再公開、の順で適用されます（SSL証明書は自動発行）。
