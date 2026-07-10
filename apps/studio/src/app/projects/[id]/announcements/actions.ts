@@ -4,8 +4,35 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { polishAnnouncementText } from '@/lib/announcement-polish';
 
 export type AnnouncementResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * 依頼文・メモ書きをAIで訪問者向けのお知らせ文に校正する（保存はしない。
+ * オペレーターが結果を確認・手直ししてから「投稿する」を押す前提）。
+ */
+export async function polishAnnouncement(
+  text: string,
+): Promise<{ ok: true; body: string } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+
+  const normalized = text
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g, '')
+    .trim()
+    .slice(0, 500);
+  if (!normalized) return { ok: false, error: '校正する本文を入力してください' };
+
+  try {
+    const body = await polishAnnouncementText(normalized);
+    return { ok: true, body };
+  } catch (err) {
+    console.error('polishAnnouncement failed:', err);
+    return { ok: false, error: '校正に失敗しました。もう一度お試しください' };
+  }
+}
 
 /**
  * 管理画面からのお知らせ投稿（§15: 投稿元 studio）。

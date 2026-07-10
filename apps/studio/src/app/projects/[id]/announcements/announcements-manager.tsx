@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import {
+  polishAnnouncement,
   postAnnouncement,
   toggleAnnouncement,
   updateAnnouncement,
@@ -30,6 +31,8 @@ export function AnnouncementsManager({
   const [notice, setNotice] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBody, setEditBody] = useState('');
+  const [draft, setDraft] = useState('');
+  const [polished, setPolished] = useState(false);
 
   const onPost = (formData: FormData) => {
     startTransition(async () => {
@@ -41,8 +44,25 @@ export function AnnouncementsManager({
         return;
       }
       formRef.current?.reset();
+      setDraft('');
+      setPolished(false);
       setNotice('投稿しました。数秒〜1分ほどでサイトに反映されます');
       router.refresh();
+    });
+  };
+
+  const onPolish = () => {
+    startTransition(async () => {
+      setError(null);
+      setNotice(null);
+      const result = await polishAnnouncement(draft);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      setDraft(result.body);
+      setPolished(true);
+      setNotice('AIが校正しました。内容を確認・手直しのうえ「投稿する」を押してください');
     });
   };
 
@@ -90,20 +110,35 @@ export function AnnouncementsManager({
           rows={3}
           maxLength={500}
           required
-          placeholder="例: 8月13日〜15日は夏季休業とさせていただきます。"
+          value={draft}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            setPolished(false);
+          }}
+          placeholder="例: 明日は台風のため臨時休業（メモ書きでOK。「AIで校正」が訪問者向けの文面に清書します）"
           className="mt-2 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
         />
-        <div className="mt-3 flex items-center justify-between">
+        <div className="mt-3 flex items-center justify-between gap-3">
           <p className="text-xs text-neutral-500">
             投稿すると数秒〜1分でサイトのお知らせ欄に反映されます（500字まで）
           </p>
-          <button
-            type="submit"
-            disabled={pending}
-            className="rounded-md bg-neutral-900 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
-          >
-            {pending ? '投稿中…' : '投稿する'}
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              disabled={pending || !draft.trim() || polished}
+              onClick={onPolish}
+              className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+            >
+              {pending ? '処理中…' : polished ? '校正済み' : 'AIで校正'}
+            </button>
+            <button
+              type="submit"
+              disabled={pending}
+              className="rounded-md bg-neutral-900 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+            >
+              {pending ? '投稿中…' : '投稿する'}
+            </button>
+          </div>
         </div>
       </form>
 
