@@ -3,14 +3,44 @@ import type { Section, SiteConfig } from '@sokko/shared';
 /**
  * セクションコンポーネント群（純プレゼンテーション層）。
  * props = SiteConfig と Section のみ。fetch・環境変数・Next固有APIに依存しない。
- * トーンは「信頼・誠実」（§13: 派手さより実直）。
+ * トーンは「上質・信頼感」（§13: 派手さより実直。明朝体見出し×余白×真鍮の装飾ルール）。
  */
 
 type SectionProps = { section: Section; config: SiteConfig };
 
-const container = 'mx-auto w-full max-w-4xl px-5';
+const container = 'mx-auto w-full max-w-5xl px-5';
 
-function CtaButton({ config }: { config: SiteConfig }) {
+/** 明朝体見出し（palt=和文詰め）。ウェイトはテンプレ側で600/700を読み込む */
+const display =
+  'font-[family-name:var(--sk-font-display)] font-semibold tracking-wide [font-feature-settings:"palt"]';
+
+/** 小さな冠テキスト＋真鍮ルール（セクションやヒーローの肩書き行） */
+function Kicker({
+  text,
+  light,
+  center,
+}: {
+  text: string;
+  light?: boolean;
+  center?: boolean;
+}) {
+  if (!text) return null;
+  return (
+    <p
+      className={`flex items-center gap-3 text-xs font-semibold tracking-[0.22em] ${
+        center ? 'justify-center' : ''
+      } ${light ? 'text-white/75' : 'text-[var(--sk-gold-text)]'}`}
+    >
+      <span aria-hidden className="inline-block h-px w-10 bg-[var(--sk-gold)]" />
+      {text}
+      {center && (
+        <span aria-hidden className="inline-block h-px w-10 bg-[var(--sk-gold)]" />
+      )}
+    </p>
+  );
+}
+
+function CtaButton({ config, light }: { config: SiteConfig; light?: boolean }) {
   const { cta } = config;
   const href =
     cta.primaryAction === 'phone' || !cta.bookingToolUrl
@@ -21,7 +51,11 @@ function CtaButton({ config }: { config: SiteConfig }) {
   return (
     <a
       href={href}
-      className="inline-block rounded-md bg-[var(--sk-primary)] px-8 py-3.5 text-sm font-bold text-white shadow-sm transition-opacity hover:opacity-90"
+      className={`inline-block rounded-sm px-10 py-4 text-sm font-bold tracking-wider shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${
+        light
+          ? 'bg-[var(--sk-paper)] text-[var(--sk-ink)]'
+          : 'bg-[var(--sk-primary)] text-white'
+      }`}
     >
       {cta.label}
     </a>
@@ -30,51 +64,71 @@ function CtaButton({ config }: { config: SiteConfig }) {
 
 export function Hero({ section, config }: SectionProps) {
   const heroImage = config.images?.hero;
+  const kicker = `${config.business.serviceAreaCities[0] ?? ''}の${config.business.industryLabel}`;
 
   if (heroImage) {
-    // 写真あり: 暗めのオーバーレイで文字コントラストを担保（アクセシビリティ要件）
+    // 写真あり: 左を深く沈めたグラデーションで文字コントラストを担保（アクセシビリティ要件）
     return (
-      <section
-        className="relative bg-cover bg-center py-24"
-        style={{ backgroundImage: `url(${heroImage})` }}
-      >
-        <div className="absolute inset-0 bg-[rgba(18,20,26,0.62)]" aria-hidden />
-        <div className={`${container} relative`}>
-          <p className="text-sm font-semibold tracking-wide text-white/80">
-            {config.business.serviceAreaCities[0] ?? ''}の{config.business.industryLabel}
-          </p>
-          <h1 className="mt-3 max-w-2xl text-3xl font-bold leading-snug text-white sm:text-4xl">
+      <section className="relative overflow-hidden bg-[var(--sk-deep)]">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${heroImage})` }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 bg-[linear-gradient(105deg,rgba(16,17,22,0.82)_25%,rgba(16,17,22,0.38))]"
+          aria-hidden
+        />
+        <div className={`${container} relative py-28 sm:py-36`}>
+          <Kicker text={kicker} light />
+          <h1
+            className={`mt-6 max-w-3xl text-3xl leading-[1.45] text-white sm:text-[2.75rem] ${display}`}
+          >
             {section.heading}
           </h1>
           {section.body && (
-            <p className="mt-5 max-w-2xl leading-relaxed text-white/90">
+            <p className="mt-7 max-w-2xl leading-loose text-white/85">
               {section.body}
             </p>
           )}
-          <div className="mt-8">
+          <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
             <CtaButton config={config} />
+            <p className="text-sm tracking-wide text-white/75">
+              お電話でのご相談　{config.business.phone}
+            </p>
           </div>
         </div>
+        <div
+          className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--sk-gold)] to-transparent"
+          aria-hidden
+        />
       </section>
     );
   }
 
   return (
-    <section className="bg-[var(--sk-primary-soft)] py-20">
-      <div className={container}>
-        <p className="text-sm font-semibold tracking-wide text-[var(--sk-primary-strong)]">
-          {config.business.serviceAreaCities[0] ?? ''}の{config.business.industryLabel}
-        </p>
-        <h1 className="mt-3 max-w-2xl text-3xl font-bold leading-snug text-[var(--sk-ink)] sm:text-4xl">
+    <section className="relative overflow-hidden border-b border-[var(--sk-line)] bg-[var(--sk-paper-soft)]">
+      <div
+        className="absolute inset-0 bg-[radial-gradient(60rem_30rem_at_85%_-15%,var(--sk-primary-soft),transparent)]"
+        aria-hidden
+      />
+      <div className={`${container} relative py-24 sm:py-32`}>
+        <Kicker text={kicker} />
+        <h1
+          className={`mt-6 max-w-3xl text-3xl leading-[1.45] text-[var(--sk-ink)] sm:text-[2.75rem] ${display}`}
+        >
           {section.heading}
         </h1>
         {section.body && (
-          <p className="mt-5 max-w-2xl leading-relaxed text-[var(--sk-ink-soft)]">
+          <p className="mt-7 max-w-2xl leading-loose text-[var(--sk-ink-soft)]">
             {section.body}
           </p>
         )}
-        <div className="mt-8">
+        <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
           <CtaButton config={config} />
+          <p className="text-sm tracking-wide text-[var(--sk-ink-soft)]">
+            お電話でのご相談　{config.business.phone}
+          </p>
         </div>
       </div>
     </section>
@@ -83,19 +137,28 @@ export function Hero({ section, config }: SectionProps) {
 
 export function Services({ section }: SectionProps) {
   return (
-    <section className="py-16">
+    <section className="py-20">
       <div className={container}>
         {section.heading && <SectionHeading text={section.heading} />}
         {section.body && <SectionLead text={section.body} />}
-        <div className="mt-8 grid gap-5 sm:grid-cols-2">
-          {(section.items ?? []).map((item) => (
+        <div className="mt-10 grid gap-6 sm:grid-cols-2">
+          {(section.items ?? []).map((item, i) => (
             <div
               key={item.title}
-              className="rounded-lg border border-[var(--sk-line)] bg-[var(--sk-paper)] p-6"
+              className="group relative rounded-sm border border-[var(--sk-line)] bg-[var(--sk-paper)] p-7 shadow-[0_1px_2px_rgba(28,25,20,0.04)] transition-shadow duration-300 hover:shadow-[0_12px_32px_rgba(28,25,20,0.10)]"
             >
-              <h3 className="font-bold text-[var(--sk-ink)]">{item.title}</h3>
+              <span
+                aria-hidden
+                className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-[var(--sk-gold)] transition-transform duration-300 group-hover:scale-x-100"
+              />
+              <p className={`text-sm text-[var(--sk-gold-text)] ${display}`}>
+                {String(i + 1).padStart(2, '0')}
+              </p>
+              <h3 className={`mt-2 text-lg text-[var(--sk-ink)] ${display}`}>
+                {item.title}
+              </h3>
               {item.body && (
-                <p className="mt-2 text-sm leading-relaxed text-[var(--sk-ink-soft)]">
+                <p className="mt-3 text-sm leading-loose text-[var(--sk-ink-soft)]">
                   {item.body}
                 </p>
               )}
@@ -109,11 +172,11 @@ export function Services({ section }: SectionProps) {
 
 export function Pricing({ section }: SectionProps) {
   return (
-    <section className="bg-[var(--sk-paper-soft)] py-16">
+    <section className="bg-[var(--sk-paper-soft)] py-20">
       <div className={container}>
         {section.heading && <SectionHeading text={section.heading} />}
         {section.body && <SectionLead text={section.body} />}
-        <div className="mt-8 overflow-hidden rounded-lg border border-[var(--sk-line)]">
+        <div className="mt-10 overflow-hidden rounded-sm border border-[var(--sk-line)] shadow-[0_1px_2px_rgba(28,25,20,0.04)]">
           <table className="w-full bg-[var(--sk-paper)] text-sm">
             <tbody>
               {(section.items ?? []).map((item, i) => (
@@ -121,15 +184,17 @@ export function Pricing({ section }: SectionProps) {
                   key={item.title}
                   className={i > 0 ? 'border-t border-[var(--sk-line)]' : ''}
                 >
-                  <th className="w-1/2 px-5 py-4 text-left font-medium text-[var(--sk-ink)]">
+                  <th className="w-1/2 px-6 py-5 text-left font-medium text-[var(--sk-ink)]">
                     {item.title}
                     {item.body && (
-                      <span className="mt-1 block text-xs font-normal text-[var(--sk-ink-soft)]">
+                      <span className="mt-1 block text-xs font-normal leading-relaxed text-[var(--sk-ink-soft)]">
                         {item.body}
                       </span>
                     )}
                   </th>
-                  <td className="px-5 py-4 text-right font-bold text-[var(--sk-primary-strong)]">
+                  <td
+                    className={`px-6 py-5 text-right text-base text-[var(--sk-primary-strong)] ${display}`}
+                  >
                     {item.meta}
                   </td>
                 </tr>
@@ -149,37 +214,43 @@ export function Profile({ section, config }: SectionProps) {
   const b = config.business;
   const photo = config.images?.representative;
   return (
-    <section className="py-16">
+    <section className="py-20">
       <div className={container}>
         {section.heading && <SectionHeading text={section.heading} />}
-        <div className="mt-8 flex flex-col gap-6 rounded-lg border border-[var(--sk-line)] bg-[var(--sk-paper)] p-8 sm:flex-row">
+        <div className="mt-10 grid gap-10 sm:grid-cols-[auto_1fr] sm:items-start">
           {photo && (
             <img
               src={photo}
               alt={`${b.representativeName ?? b.officeName} の写真`}
-              width={160}
-              height={160}
+              width={176}
+              height={224}
               loading="lazy"
-              className="h-40 w-40 shrink-0 rounded-lg object-cover"
+              className="h-56 w-44 rounded-sm object-cover shadow-md"
             />
           )}
           <div className="min-w-0">
-          {b.representativeName && (
-            <p className="text-lg font-bold text-[var(--sk-ink)]">
-              {b.representativeName}
-              <span className="ml-2 text-sm font-medium text-[var(--sk-ink-soft)]">
-                {b.industryLabel}
-              </span>
-            </p>
-          )}
-          {b.certifications && (
-            <p className="mt-1 text-sm text-[var(--sk-ink-soft)]">{b.certifications}</p>
-          )}
-          {section.body && (
-            <p className="mt-5 whitespace-pre-line leading-relaxed text-[var(--sk-ink-soft)]">
-              {section.body}
-            </p>
-          )}
+            {b.representativeName && (
+              <p className={`text-2xl text-[var(--sk-ink)] ${display}`}>
+                {b.representativeName}
+                <span className="ml-3 text-sm font-medium tracking-wider text-[var(--sk-ink-soft)]">
+                  {b.industryLabel}
+                </span>
+              </p>
+            )}
+            {b.certifications && (
+              <p className="mt-2 text-sm text-[var(--sk-ink-soft)]">
+                {b.certifications}
+              </p>
+            )}
+            <span
+              aria-hidden
+              className="my-6 block h-px w-10 bg-[var(--sk-gold)]"
+            />
+            {section.body && (
+              <p className="whitespace-pre-line leading-loose text-[var(--sk-ink-soft)]">
+                {section.body}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -189,21 +260,28 @@ export function Profile({ section, config }: SectionProps) {
 
 export function Testimonials({ section }: SectionProps) {
   return (
-    <section className="bg-[var(--sk-paper-soft)] py-16">
+    <section className="bg-[var(--sk-paper-soft)] py-20">
       <div className={container}>
         {section.heading && <SectionHeading text={section.heading} />}
-        <div className="mt-8 space-y-5">
+        <div className="mt-10 space-y-6">
           {(section.items ?? []).map((item) => (
             <figure
               key={item.title}
-              className="rounded-lg border border-[var(--sk-line)] bg-[var(--sk-paper)] p-6"
+              className="relative rounded-sm border border-[var(--sk-line)] bg-[var(--sk-paper)] p-7 pl-16 shadow-[0_1px_2px_rgba(28,25,20,0.04)]"
             >
-              <blockquote className="leading-relaxed text-[var(--sk-ink)]">
+              <span
+                aria-hidden
+                className={`absolute left-6 top-6 text-4xl leading-none text-[var(--sk-gold)] ${display}`}
+              >
+                “
+              </span>
+              <blockquote className="leading-loose text-[var(--sk-ink)]">
                 {item.body}
               </blockquote>
-              <figcaption className="mt-3 text-sm text-[var(--sk-ink-soft)]">
+              <figcaption className="mt-4 flex items-center gap-3 text-sm text-[var(--sk-ink-soft)]">
+                <span aria-hidden className="inline-block h-px w-6 bg-[var(--sk-gold)]" />
                 {item.title}
-                {item.meta && <span className="ml-2 text-xs">{item.meta}</span>}
+                {item.meta && <span className="text-xs">{item.meta}</span>}
               </figcaption>
             </figure>
           ))}
@@ -217,34 +295,40 @@ export function Access({ section, config }: SectionProps) {
   const b = config.business;
   const officePhoto = config.images?.office;
   return (
-    <section className="py-16">
+    <section className="py-20">
       <div className={container}>
         {section.heading && <SectionHeading text={section.heading} />}
-        {officePhoto && (
-          <img
-            src={officePhoto}
-            alt={`${b.officeName}の外観`}
-            loading="lazy"
-            className="mt-8 max-h-80 w-full rounded-lg object-cover"
-          />
-        )}
-        <dl className="mt-8 divide-y divide-[var(--sk-line)] overflow-hidden rounded-lg border border-[var(--sk-line)] bg-[var(--sk-paper)] text-sm">
-          {[
-            ['所在地', b.address],
-            ['電話', b.phone],
-            ['営業時間', b.businessHours],
-            ['定休日', b.closedDays],
-          ].map(([label, value]) => (
-            <div key={label} className="flex">
-              <dt className="w-28 shrink-0 bg-[var(--sk-paper-soft)] px-5 py-4 font-medium text-[var(--sk-ink)]">
-                {label}
-              </dt>
-              <dd className="px-5 py-4 text-[var(--sk-ink-soft)]">{value}</dd>
-            </div>
-          ))}
-        </dl>
+        <div
+          className={`mt-10 grid gap-8 ${officePhoto ? 'sm:grid-cols-[1.1fr_1fr] sm:items-start' : ''}`}
+        >
+          {officePhoto && (
+            <img
+              src={officePhoto}
+              alt={`${b.officeName}の外観`}
+              loading="lazy"
+              className="max-h-96 w-full rounded-sm object-cover shadow-md"
+            />
+          )}
+          <dl className="divide-y divide-[var(--sk-line)] overflow-hidden rounded-sm border border-[var(--sk-line)] bg-[var(--sk-paper)] text-sm shadow-[0_1px_2px_rgba(28,25,20,0.04)]">
+            {[
+              ['所在地', b.address],
+              ['電話', b.phone],
+              ['営業時間', b.businessHours],
+              ['定休日', b.closedDays],
+            ].map(([label, value]) => (
+              <div key={label} className="flex">
+                <dt className="w-28 shrink-0 bg-[var(--sk-paper-soft)] px-5 py-4 font-medium tracking-wider text-[var(--sk-ink)]">
+                  {label}
+                </dt>
+                <dd className="px-5 py-4 leading-relaxed text-[var(--sk-ink-soft)]">
+                  {value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
         {section.body && (
-          <p className="mt-4 text-sm leading-relaxed text-[var(--sk-ink-soft)]">
+          <p className="mt-5 text-sm leading-loose text-[var(--sk-ink-soft)]">
             {section.body}
           </p>
         )}
@@ -255,19 +339,31 @@ export function Access({ section, config }: SectionProps) {
 
 export function Contact({ section, config }: SectionProps) {
   return (
-    <section className="bg-[var(--sk-primary-soft)] py-16">
-      <div className={`${container} text-center`}>
-        {section.heading && <SectionHeading text={section.heading} center />}
+    <section className="relative overflow-hidden bg-[var(--sk-deep)] py-20 text-center">
+      <div
+        className="absolute inset-0 bg-[radial-gradient(50rem_24rem_at_50%_-20%,rgba(255,255,255,0.08),transparent)]"
+        aria-hidden
+      />
+      <div className={`${container} relative`}>
+        {section.heading && (
+          <h2 className={`text-2xl text-white sm:text-3xl ${display}`}>
+            <span
+              aria-hidden
+              className="mx-auto mb-5 block h-px w-12 bg-[var(--sk-gold)]"
+            />
+            {section.heading}
+          </h2>
+        )}
         {section.body && (
-          <p className="mx-auto mt-4 max-w-xl leading-relaxed text-[var(--sk-ink-soft)]">
+          <p className="mx-auto mt-5 max-w-xl leading-loose text-white/80">
             {section.body}
           </p>
         )}
-        <div className="mt-8">
-          <CtaButton config={config} />
+        <div className="mt-9">
+          <CtaButton config={config} light />
         </div>
-        <p className="mt-4 text-sm text-[var(--sk-ink-soft)]">
-          お電話でのご相談: {config.business.phone}（{config.business.businessHours}）
+        <p className="mt-5 text-sm tracking-wide text-white/70">
+          お電話でのご相談　{config.business.phone}（{config.business.businessHours}）
         </p>
       </div>
     </section>
@@ -279,21 +375,30 @@ export function Faq({ section, config }: SectionProps) {
     ? section.items
     : config.aeo.faq.map((f) => ({ title: f.question, body: f.answer }));
   return (
-    <section className="py-16">
+    <section className="py-20">
       <div className={container}>
         <SectionHeading text={section.heading ?? 'よくある質問'} />
-        <div className="mt-8 space-y-4">
+        <div className="mt-10 divide-y divide-[var(--sk-line)] border-y border-[var(--sk-line)]">
           {items.map((item) => (
-            <details
-              key={item.title}
-              className="group rounded-lg border border-[var(--sk-line)] bg-[var(--sk-paper)] p-5"
-            >
-              <summary className="cursor-pointer list-none font-medium text-[var(--sk-ink)]">
-                <span className="mr-2 font-bold text-[var(--sk-primary-strong)]">Q.</span>
-                {item.title}
+            <details key={item.title} className="group py-5">
+              <summary className="flex cursor-pointer list-none items-baseline justify-between gap-4 font-medium text-[var(--sk-ink)]">
+                <span>
+                  <span className={`mr-3 text-[var(--sk-gold-text)] ${display}`}>
+                    Q
+                  </span>
+                  {item.title}
+                </span>
+                <span
+                  aria-hidden
+                  className="shrink-0 text-[var(--sk-gold-text)] transition-transform duration-200 group-open:rotate-45"
+                >
+                  ＋
+                </span>
               </summary>
-              <p className="mt-3 leading-relaxed text-[var(--sk-ink-soft)]">
-                <span className="mr-2 font-bold text-[var(--sk-primary-strong)]">A.</span>
+              <p className="mt-4 pl-8 leading-loose text-[var(--sk-ink-soft)]">
+                <span className={`mr-3 text-[var(--sk-primary-strong)] ${display}`}>
+                  A
+                </span>
                 {item.body}
               </p>
             </details>
@@ -313,13 +418,13 @@ export function NewsList({ items }: { items: NewsItem[] }) {
     );
   }
   return (
-    <ul className="divide-y divide-[var(--sk-line)] overflow-hidden rounded-lg border border-[var(--sk-line)] bg-[var(--sk-paper)]">
+    <ul className="divide-y divide-[var(--sk-line)] border-y border-[var(--sk-line)]">
       {items.map((item) => (
-        <li key={item.id} className="px-5 py-4">
-          <time className="text-xs text-[var(--sk-ink-soft)]">
-            {item.publishedAt.slice(0, 10)}
+        <li key={item.id} className="flex flex-col gap-1 py-5 sm:flex-row sm:gap-8">
+          <time className="shrink-0 pt-0.5 text-xs font-semibold tracking-[0.15em] text-[var(--sk-gold-text)] [font-variant-numeric:tabular-nums]">
+            {item.publishedAt.slice(0, 10).replaceAll('-', '.')}
           </time>
-          <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-[var(--sk-ink)]">
+          <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--sk-ink)]">
             {item.body}
           </p>
         </li>
@@ -329,51 +434,79 @@ export function NewsList({ items }: { items: NewsItem[] }) {
 }
 
 /**
+ * お知らせ系セクションの枠（静的版とライブ取得版で同じ見た目を共有するための部品）。
+ * site-template の LiveNews / LiveNewsDigest もこの枠を使うこと（マークアップの二重管理を防ぐ）。
+ */
+export function NewsSectionShell({
+  heading,
+  children,
+}: {
+  heading: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="py-20">
+      <div className={container}>
+        <SectionHeading text={heading} />
+        <div className="mt-10">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+export function NewsDigestShell({
+  heading,
+  children,
+}: {
+  heading: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="border-b border-[var(--sk-line)] bg-[var(--sk-paper-soft)] py-12">
+      <div className={container}>
+        <div className="flex items-baseline justify-between">
+          <h2 className={`text-xl text-[var(--sk-ink)] ${display}`}>{heading}</h2>
+          <a
+            href="/news"
+            className="text-sm font-medium text-[var(--sk-primary-strong)] underline-offset-4 hover:underline"
+          >
+            お知らせ一覧へ →
+          </a>
+        </div>
+        <div className="mt-6">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+/**
  * トップ用お知らせダイジェスト: 最新3件＋一覧への導線。
  * site-template側ではライブ取得版（LiveNewsDigest）に差し替えられる。
  */
 export function NewsDigest({ section, config }: SectionProps) {
   return (
-    <section className="border-y border-[var(--sk-line)] bg-[var(--sk-paper-soft)] py-10">
-      <div className={container}>
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-lg font-bold text-[var(--sk-ink)]">
-            {section.heading ?? 'お知らせ'}
-          </h2>
-          <a
-            href="/news"
-            className="text-sm font-medium text-[var(--sk-primary-strong)] hover:underline"
-          >
-            お知らせ一覧へ →
-          </a>
-        </div>
-        <div className="mt-4">
-          <NewsList items={config.announcements.baked.slice(0, 3)} />
-        </div>
-      </div>
-    </section>
+    <NewsDigestShell heading={section.heading ?? 'お知らせ'}>
+      <NewsList items={config.announcements.baked.slice(0, 3)} />
+    </NewsDigestShell>
   );
 }
 
 export function News({ section, config }: SectionProps) {
   return (
-    <section className="py-16">
-      <div className={container}>
-        <SectionHeading text={section.heading ?? 'お知らせ'} />
-        <div className="mt-8" data-sokko-news>
-          <NewsList items={config.announcements.baked} />
-        </div>
+    <NewsSectionShell heading={section.heading ?? 'お知らせ'}>
+      <div data-sokko-news>
+        <NewsList items={config.announcements.baked} />
       </div>
-    </section>
+    </NewsSectionShell>
   );
 }
 
 export function RichText({ section }: SectionProps) {
   return (
-    <section className="py-16">
+    <section className="py-20">
       <div className={container}>
         {section.heading && <SectionHeading text={section.heading} />}
-        <p className="mt-6 max-w-2xl whitespace-pre-line leading-relaxed text-[var(--sk-ink-soft)]">
+        <p className="mt-8 max-w-2xl whitespace-pre-line leading-loose text-[var(--sk-ink-soft)]">
           {section.body}
         </p>
       </div>
@@ -387,20 +520,22 @@ export function Cta({ section, config }: SectionProps) {
 
 function SectionHeading({ text, center }: { text: string; center?: boolean }) {
   return (
-    <h2
-      className={`text-2xl font-bold text-[var(--sk-ink)] ${center ? 'text-center' : ''}`}
-    >
+    <div className={center ? 'text-center' : ''}>
       <span
-        className={`mb-2 block h-1 w-10 rounded bg-[var(--sk-primary)] ${center ? 'mx-auto' : ''}`}
         aria-hidden
+        className={`block h-px w-12 bg-[var(--sk-gold)] ${center ? 'mx-auto' : ''}`}
       />
-      {text}
-    </h2>
+      <h2
+        className={`mt-5 text-2xl text-[var(--sk-ink)] sm:text-3xl ${display}`}
+      >
+        {text}
+      </h2>
+    </div>
   );
 }
 
 function SectionLead({ text }: { text: string }) {
   return (
-    <p className="mt-4 max-w-2xl leading-relaxed text-[var(--sk-ink-soft)]">{text}</p>
+    <p className="mt-5 max-w-2xl leading-loose text-[var(--sk-ink-soft)]">{text}</p>
   );
 }

@@ -4,7 +4,12 @@ import { cssVariables } from './tokens';
 /**
  * サイト全体のシェル（ヘッダー・ナビ・フッター）。
  * リンクは素の<a>を使う（Next非依存＝studioプレビューでもそのまま動く）。
+ * デザインは「上質・信頼感」: 明朝体の屋号、主色→真鍮のトップライン、深色フッター。
  */
+
+const display =
+  'font-[family-name:var(--sk-font-display)] font-semibold tracking-wide [font-feature-settings:"palt"]';
+
 export function SiteShell({
   config,
   currentPath,
@@ -14,43 +19,52 @@ export function SiteShell({
   currentPath: string;
   children: React.ReactNode;
 }) {
+  const b = config.business;
   return (
     <div
       style={cssVariables(config.design) as React.CSSProperties}
-      className="min-h-screen bg-[var(--sk-paper)] font-sans text-[var(--sk-ink)]"
+      className="min-h-screen bg-[var(--sk-paper)] font-sans text-[var(--sk-ink)] antialiased"
     >
+      <div
+        aria-hidden
+        className="h-0.5 bg-gradient-to-r from-[var(--sk-primary)] via-[var(--sk-gold)] to-[var(--sk-primary)]"
+      />
       <header className="border-b border-[var(--sk-line)] bg-[var(--sk-paper)]">
-        <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-5 py-4">
-          <a href="/" className="flex items-center gap-3 text-lg font-bold text-[var(--sk-ink)]">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-5 py-5">
+          <a
+            href="/"
+            className={`flex min-w-0 items-center gap-3 text-xl text-[var(--sk-ink)] ${display}`}
+          >
             {config.design.logoPath && (
-              <img
-                src={config.design.logoPath}
-                alt=""
-                className="h-9 w-auto"
-              />
+              <img src={config.design.logoPath} alt="" className="h-10 w-auto" />
             )}
-            {config.business.officeName}
+            <span className="truncate">{b.officeName}</span>
           </a>
-          <p className="hidden text-sm text-[var(--sk-ink-soft)] sm:block">
-            {config.business.phone}
-          </p>
+          <div className="hidden shrink-0 text-right sm:block">
+            <p className={`text-lg leading-tight text-[var(--sk-ink)] ${display}`}>
+              {b.phone}
+            </p>
+            <p className="mt-0.5 text-xs tracking-wide text-[var(--sk-ink-soft)]">
+              {b.businessHours}
+            </p>
+          </div>
         </div>
         <nav
           aria-label="サイト内メニュー"
-          className="border-t border-[var(--sk-line)] bg-[var(--sk-paper-soft)]"
+          className="border-t border-[var(--sk-line)]"
         >
           {/* モバイル: 横スクロール / デスクトップ: 折り返し（見切れ防止） */}
-          <div className="mx-auto w-full max-w-4xl overflow-x-auto px-5">
-            <ul className="flex min-w-max gap-1 text-sm sm:min-w-0 sm:flex-wrap">
+          <div className="mx-auto w-full max-w-5xl overflow-x-auto px-5">
+            <ul className="flex min-w-max gap-2 text-sm sm:min-w-0 sm:flex-wrap">
               {config.pages.map((p) => (
                 <li key={p.key}>
                   <a
                     href={p.path}
                     aria-current={currentPath === p.path ? 'page' : undefined}
-                    className={`block whitespace-nowrap px-3 py-2.5 ${
+                    className={`block whitespace-nowrap px-3 py-3 tracking-wide ${
                       currentPath === p.path
-                        ? 'font-bold text-[var(--sk-primary-strong)] shadow-[inset_0_-2px_0_var(--sk-primary)]'
-                        : 'text-[var(--sk-ink-soft)] hover:text-[var(--sk-ink)]'
+                        ? 'font-bold text-[var(--sk-primary-strong)] shadow-[inset_0_-2px_0_var(--sk-gold)]'
+                        : 'text-[var(--sk-ink-soft)] transition-colors hover:text-[var(--sk-ink)]'
                     }`}
                   >
                     {NAV_LABELS[p.key]}
@@ -64,19 +78,37 @@ export function SiteShell({
 
       <main>{children}</main>
 
-      <footer className="mt-8 border-t border-[var(--sk-line)] bg-[var(--sk-paper-soft)]">
-        <div className="mx-auto w-full max-w-4xl px-5 py-10 text-sm text-[var(--sk-ink-soft)]">
-          <p className="font-bold text-[var(--sk-ink)]">
-            {config.business.officeName}
-          </p>
-          <p className="mt-2">{config.business.address}</p>
-          <p className="mt-1">
-            {config.business.phone}（{config.business.businessHours} / 定休日:{' '}
-            {config.business.closedDays}）
-          </p>
-          <p className="mt-6 text-xs">
-            © {config.business.officeName}
-          </p>
+      {/* 直前がCTA帯（同じ深色）でも自然につながるよう、余白は挟まない */}
+      <footer className="bg-[var(--sk-deep)] text-white/75">
+        <div
+          aria-hidden
+          className="h-px bg-gradient-to-r from-transparent via-[var(--sk-gold)] to-transparent"
+        />
+        <div className="mx-auto w-full max-w-5xl px-5 py-14">
+          <div className="flex flex-col justify-between gap-10 sm:flex-row">
+            <div>
+              <p className={`text-lg text-white ${display}`}>{b.officeName}</p>
+              <p className="mt-4 text-sm leading-relaxed">{b.address}</p>
+              <p className="mt-1 text-sm">
+                {b.phone}（{b.businessHours} / 定休日: {b.closedDays}）
+              </p>
+            </div>
+            <nav aria-label="フッターメニュー">
+              <ul className="grid grid-cols-2 gap-x-10 gap-y-2.5 text-sm">
+                {config.pages.map((p) => (
+                  <li key={p.key}>
+                    <a
+                      href={p.path}
+                      className="transition-colors hover:text-white"
+                    >
+                      {NAV_LABELS[p.key]}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+          <p className="mt-12 text-xs text-white/50">© {b.officeName}</p>
         </div>
       </footer>
     </div>

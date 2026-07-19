@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import type { Section, SiteConfig } from '@sokko/shared';
-import { NewsList, type NewsItem } from '@sokko/site-kit';
+import {
+  NewsDigestShell,
+  NewsList,
+  NewsSectionShell,
+  type NewsItem,
+} from '@sokko/site-kit';
 
 /**
  * お知らせ欄（計画6章のハイブリッド方式）:
@@ -53,20 +58,9 @@ export function LiveNews({
   const items = useLiveAnnouncements(config, 20);
 
   return (
-    <section className="py-16">
-      <div className="mx-auto w-full max-w-4xl px-5">
-        <h2 className="text-2xl font-bold text-[var(--sk-ink)]">
-          <span
-            className="mb-2 block h-1 w-10 rounded bg-[var(--sk-primary)]"
-            aria-hidden
-          />
-          {section.heading ?? 'お知らせ'}
-        </h2>
-        <div className="mt-8">
-          <NewsList items={items} />
-        </div>
-      </div>
-    </section>
+    <NewsSectionShell heading={section.heading ?? 'お知らせ'}>
+      <NewsList items={items} />
+    </NewsSectionShell>
   );
 }
 
@@ -81,23 +75,8 @@ export function LiveNewsDigest({
   const items = useLiveAnnouncements(config, 3);
 
   return (
-    <section className="border-y border-[var(--sk-line)] bg-[var(--sk-paper-soft)] py-10">
-      <div className="mx-auto w-full max-w-4xl px-5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-lg font-bold text-[var(--sk-ink)]">
-            {section.heading ?? 'お知らせ'}
-          </h2>
-          <a
-            href="/news"
-            className="text-sm font-medium text-[var(--sk-primary-strong)] hover:underline"
-          >
-            お知らせ一覧へ →
-          </a>
-        </div>
-        <div className="mt-4">
-          <NewsList items={items} />
-        </div>
-      </div>
-    </section>
+    <NewsDigestShell heading={section.heading ?? 'お知らせ'}>
+      <NewsList items={items} />
+    </NewsDigestShell>
   );
 }

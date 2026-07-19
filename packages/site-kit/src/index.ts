@@ -3,4 +3,9 @@ export { JsonLd, buildJsonLd } from './jsonld';
 export { buildLlmsTxt } from './llms';
 export { SiteShell } from './site-shell';
 export { PageRenderer } from './page-renderer';
-export { NewsList, type NewsItem } from './sections';
+export {
+  NewsList,
+  NewsSectionShell,
+  NewsDigestShell,
+  type NewsItem,
+} from './sections';

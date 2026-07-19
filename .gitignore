@@ -11,3 +11,4 @@ dist/
 .env*
 apps/site-template/wrangler.jsonc
 apps/site-template/deploy-meta.json
+apps/site-template/site.config.json
