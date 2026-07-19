@@ -32,6 +32,7 @@ export const SAMPLE_SITE_CONFIG: SiteConfig = {
     templateId: 'shigyo-v1',
     tone: '信頼',
     primaryColor: '#1e3a5f',
+    variant: 'classic',
   },
   cta: {
     primaryAction: 'consultation',

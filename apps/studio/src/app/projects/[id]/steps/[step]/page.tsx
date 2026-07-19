@@ -65,6 +65,7 @@ export default async function StepPage({
           projectId={project.id}
           input={project.input}
           currentTemplateId={project.template_id}
+          currentVariant={project.design_variant ?? 'classic'}
         />
       );
       break;

@@ -67,6 +67,27 @@ export const PAGE_PATHS: Record<PageKey, string> = {
 export const TONES = ['信頼', '親しみ', '高級', '誠実'] as const;
 export type Tone = (typeof TONES)[number];
 
+/** デザインバリアント（Step2で選択。§9-2）。見た目のみの切替で構造・文章は共通 */
+export const DESIGN_VARIANTS = {
+  classic: {
+    label: '上質・信頼',
+    description:
+      '明朝体の見出し×広い余白×真鍮の装飾ライン。士業・クリニックなど「信頼で選ばれる」業種の王道',
+  },
+  future: {
+    label: '先進・近未来',
+    description:
+      'ダーク背景×発光アクセント×極太タイポ。IT・テック系や新しさを打ち出したい事業向け',
+  },
+  warm: {
+    label: '温かみ・親しみ',
+    description:
+      '丸ゴシック×大きな角丸×柔らかな配色。飲食・美容・地域密着サービス向け',
+  },
+} as const;
+export type DesignVariant = keyof typeof DESIGN_VARIANTS;
+export const DESIGN_VARIANT_KEYS = ['classic', 'future', 'warm'] as const;
+
 /** CTA種別（§10-D） */
 export const CTA_TYPES = {
   consultation: '相談予約',

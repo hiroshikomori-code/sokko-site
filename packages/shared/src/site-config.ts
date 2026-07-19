@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DEFAULT_PAGE_KEYS, TONES } from './constants';
+import { DEFAULT_PAGE_KEYS, DESIGN_VARIANT_KEYS, TONES } from './constants';
 
 /**
  * SiteConfig ─ studio が書き、site-template が読み、CI が運ぶ三者契約。
@@ -81,6 +81,8 @@ export const siteConfigSchema = z.object({
     tone: z.enum(TONES),
     primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
     logoPath: z.string().optional(),
+    /** デザインバリアント（Step2で選択）。過去のsite_configはdefaultでclassic扱い */
+    variant: z.enum(DESIGN_VARIANT_KEYS).default('classic'),
   }),
   /** 画像スロット（公開URL）。未設定スロットは写真なしデザインに自動フォールバック */
   images: z

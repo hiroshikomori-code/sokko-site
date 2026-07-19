@@ -8,7 +8,7 @@ import { cssVariables } from './tokens';
  */
 
 const display =
-  'font-[family-name:var(--sk-font-display)] font-semibold tracking-wide [font-feature-settings:"palt"]';
+  'font-[family-name:var(--sk-font-display)] [font-weight:var(--sk-display-weight)] tracking-wide [font-feature-settings:"palt"]';
 
 export function SiteShell({
   config,

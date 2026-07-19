@@ -12,7 +12,7 @@ const container = 'mx-auto w-full max-w-5xl px-5';
 
 /** 明朝体見出し（palt=和文詰め）。ウェイトはテンプレ側で600/700を読み込む */
 const display =
-  'font-[family-name:var(--sk-font-display)] font-semibold tracking-wide [font-feature-settings:"palt"]';
+  'font-[family-name:var(--sk-font-display)] [font-weight:var(--sk-display-weight)] tracking-wide [font-feature-settings:"palt"]';
 
 /** 小さな冠テキスト＋真鍮ルール（セクションやヒーローの肩書き行） */
 function Kicker({
@@ -51,9 +51,9 @@ function CtaButton({ config, light }: { config: SiteConfig; light?: boolean }) {
   return (
     <a
       href={href}
-      className={`inline-block rounded-sm px-10 py-4 text-sm font-bold tracking-wider shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${
+      className={`inline-block rounded-[var(--sk-radius)] px-10 py-4 text-sm font-bold tracking-wider shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${
         light
-          ? 'bg-[var(--sk-paper)] text-[var(--sk-ink)]'
+          ? 'bg-white text-neutral-900'
           : 'bg-[var(--sk-primary)] text-white'
       }`}
     >
@@ -145,7 +145,7 @@ export function Services({ section }: SectionProps) {
           {(section.items ?? []).map((item, i) => (
             <div
               key={item.title}
-              className="group relative rounded-sm border border-[var(--sk-line)] bg-[var(--sk-paper)] p-7 shadow-[0_1px_2px_rgba(28,25,20,0.04)] transition-shadow duration-300 hover:shadow-[0_12px_32px_rgba(28,25,20,0.10)]"
+              className="group relative rounded-[var(--sk-radius)] border border-[var(--sk-line)] bg-[var(--sk-paper)] p-7 shadow-[var(--sk-shadow-card)] transition-shadow duration-300 hover:shadow-[var(--sk-shadow-card-hover)]"
             >
               <span
                 aria-hidden
@@ -176,7 +176,7 @@ export function Pricing({ section }: SectionProps) {
       <div className={container}>
         {section.heading && <SectionHeading text={section.heading} />}
         {section.body && <SectionLead text={section.body} />}
-        <div className="mt-10 overflow-hidden rounded-sm border border-[var(--sk-line)] shadow-[0_1px_2px_rgba(28,25,20,0.04)]">
+        <div className="mt-10 overflow-hidden rounded-[var(--sk-radius)] border border-[var(--sk-line)] shadow-[var(--sk-shadow-card)]">
           <table className="w-full bg-[var(--sk-paper)] text-sm">
             <tbody>
               {(section.items ?? []).map((item, i) => (
@@ -225,7 +225,7 @@ export function Profile({ section, config }: SectionProps) {
               width={176}
               height={224}
               loading="lazy"
-              className="h-56 w-44 rounded-sm object-cover shadow-md"
+              className="h-56 w-44 rounded-[var(--sk-radius)] object-cover shadow-md"
             />
           )}
           <div className="min-w-0">
@@ -267,7 +267,7 @@ export function Testimonials({ section }: SectionProps) {
           {(section.items ?? []).map((item) => (
             <figure
               key={item.title}
-              className="relative rounded-sm border border-[var(--sk-line)] bg-[var(--sk-paper)] p-7 pl-16 shadow-[0_1px_2px_rgba(28,25,20,0.04)]"
+              className="relative rounded-[var(--sk-radius)] border border-[var(--sk-line)] bg-[var(--sk-paper)] p-7 pl-16 shadow-[var(--sk-shadow-card)]"
             >
               <span
                 aria-hidden
@@ -306,10 +306,10 @@ export function Access({ section, config }: SectionProps) {
               src={officePhoto}
               alt={`${b.officeName}の外観`}
               loading="lazy"
-              className="max-h-96 w-full rounded-sm object-cover shadow-md"
+              className="max-h-96 w-full rounded-[var(--sk-radius)] object-cover shadow-md"
             />
           )}
-          <dl className="divide-y divide-[var(--sk-line)] overflow-hidden rounded-sm border border-[var(--sk-line)] bg-[var(--sk-paper)] text-sm shadow-[0_1px_2px_rgba(28,25,20,0.04)]">
+          <dl className="divide-y divide-[var(--sk-line)] overflow-hidden rounded-[var(--sk-radius)] border border-[var(--sk-line)] bg-[var(--sk-paper)] text-sm shadow-[var(--sk-shadow-card)]">
             {[
               ['所在地', b.address],
               ['電話', b.phone],

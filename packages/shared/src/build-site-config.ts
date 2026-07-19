@@ -3,6 +3,7 @@ import {
   INDUSTRY_TYPES,
   PAGE_LABELS,
   PAGE_PATHS,
+  type DesignVariant,
   type PageKey,
 } from './constants';
 import type { ProjectInput } from './input-schema';
@@ -26,6 +27,8 @@ export type BuildSiteConfigOptions = {
   logoPath?: string;
   /** 画像スロットの公開URL（Step4で割当。未設定は写真なしデザイン） */
   images?: { hero?: string; representative?: string; office?: string };
+  /** デザインバリアント（projects.design_variant。未指定はclassic） */
+  variant?: DesignVariant;
 };
 
 /**
@@ -106,6 +109,7 @@ export function buildSiteConfig(
       tone: input.mood.tone,
       primaryColor: input.mood.mainColor,
       logoPath: opts.logoPath,
+      variant: opts.variant ?? 'classic',
     },
     images: opts.images,
     cta: {

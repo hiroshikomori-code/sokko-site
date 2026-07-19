@@ -1,6 +1,7 @@
 import {
   buildSiteConfig,
   projectInputSchema,
+  type DesignVariant,
   type SiteConfig,
 } from '@sokko/shared';
 import { createClient } from '@/lib/supabase/server';
@@ -18,7 +19,7 @@ export async function buildAndSaveSiteConfig(
   const { data: project } = await supabase
     .from('projects')
     .select(
-      'id, slug, input, template_id, preview_url, deploy_url, visuals, custom_domain',
+      'id, slug, input, template_id, preview_url, deploy_url, visuals, custom_domain, design_variant',
     )
     .eq('id', projectId)
     .single();
@@ -99,6 +100,7 @@ export async function buildAndSaveSiteConfig(
       })),
       logoPath: publicUrl(visuals.logo),
       images,
+      variant: (project.design_variant ?? 'classic') as DesignVariant,
     });
 
     const { error } = await supabase

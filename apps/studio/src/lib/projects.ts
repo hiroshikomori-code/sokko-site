@@ -1,5 +1,9 @@
 import { redirect } from 'next/navigation';
-import type { ProjectInputDraft, ProjectStatus } from '@sokko/shared';
+import type {
+  DesignVariant,
+  ProjectInputDraft,
+  ProjectStatus,
+} from '@sokko/shared';
 import { createClient } from '@/lib/supabase/server';
 
 export type Project = {
@@ -10,6 +14,7 @@ export type Project = {
   status: ProjectStatus;
   current_step: number;
   template_id: string | null;
+  design_variant: DesignVariant;
   preview_url: string | null;
   deploy_url: string | null;
   approver_id: string | null;
@@ -20,7 +25,7 @@ export async function getProject(id: string): Promise<Project | null> {
   const { data } = await supabase
     .from('projects')
     .select(
-      'id, name, slug, input, status, current_step, template_id, preview_url, deploy_url, approver_id',
+      'id, name, slug, input, status, current_step, template_id, design_variant, preview_url, deploy_url, approver_id',
     )
     .eq('id', id)
     .single();
