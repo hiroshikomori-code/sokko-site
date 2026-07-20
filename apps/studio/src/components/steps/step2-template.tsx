@@ -4,7 +4,9 @@ import { createClient } from '@/lib/supabase/server';
 import {
   DESIGN_VARIANTS,
   DESIGN_VARIANT_KEYS,
+  INDUSTRY_TYPES,
   type DesignVariant,
+  type IndustryType,
   type ProjectInputDraft,
 } from '@sokko/shared';
 
@@ -46,16 +48,30 @@ export async function Step2Template({
     const supabase = await createClient();
     const { data: project } = await supabase
       .from('projects')
-      .select('current_step, status')
+      .select('current_step, status, input')
       .eq('id', projectId)
       .single();
     if (!project || !['draft', 'revising'].includes(project.status)) return;
+
+    // AI業種判定の修正（オペレーターがStep2で直した場合のみ反映）
+    const rawPreset = String(formData.get('industryPreset') ?? '');
+    const rawLabel = String(formData.get('industryLabel') ?? '')
+      .trim()
+      .slice(0, 40);
+    const nextInput = project.input as {
+      basics?: { industryType?: string; industryLabel?: string };
+    };
+    if (nextInput.basics) {
+      if (rawPreset in INDUSTRY_TYPES) nextInput.basics.industryType = rawPreset;
+      if (rawLabel) nextInput.basics.industryLabel = rawLabel;
+    }
 
     await supabase
       .from('projects')
       .update({
         template_id: templateId,
         design_variant: variant,
+        input: nextInput,
         current_step: Math.max(project.current_step, 3),
       })
       .eq('id', projectId);
@@ -69,9 +85,56 @@ export async function Step2Template({
   }
 
   const mainColor = input.mood?.mainColor ?? '#1e3a5f';
+  const detectedPreset = (input.basics?.industryType ?? 'generic') as IndustryType;
+  const detectedLabel =
+    input.basics?.industryLabel ?? INDUSTRY_TYPES[detectedPreset];
 
   return (
     <form action={confirmTemplate} className="space-y-6">
+      <section className="space-y-3">
+        <h3 className="text-sm font-semibold text-neutral-900">
+          業種（AIがヒアリング内容から判定）
+        </h3>
+        <div className="rounded-xl border border-neutral-200 bg-white p-6">
+          <p className="text-sm text-neutral-900">
+            判定結果:{' '}
+            <span className="font-bold">{detectedLabel}</span>
+            <span className="ml-2 text-xs text-neutral-500">
+              （プリセット: {INDUSTRY_TYPES[detectedPreset]}）
+            </span>
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <label className="block text-xs text-neutral-600">
+              サイトに表示する業種名（肩書き「◯◯市の△△」の△△）
+              <input
+                name="industryLabel"
+                type="text"
+                defaultValue={detectedLabel}
+                maxLength={40}
+                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none"
+              />
+            </label>
+            <label className="block text-xs text-neutral-600">
+              言葉づかいのプリセット（違っていれば変更）
+              <select
+                name="industryPreset"
+                defaultValue={detectedPreset}
+                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none"
+              >
+                {Object.entries(INDUSTRY_TYPES).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p className="mt-3 text-xs text-neutral-500">
+            判定が合っていれば何もしなくてOKです。ここの内容がナビの言葉づかい・検索エンジン向け情報に反映されます。
+          </p>
+        </div>
+      </section>
+
       <section className="space-y-3">
         <h3 className="text-sm font-semibold text-neutral-900">業種テンプレート</h3>
         {(templates ?? []).map((t) => (

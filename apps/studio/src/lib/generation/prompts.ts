@@ -15,7 +15,12 @@ import {
 
 export function workerSystemPrompt(input: ProjectInput): string {
   const preset = INDUSTRY_PRESETS[input.basics.industryType];
-  return `あなたは${preset.writerRole}専門のWebコピーライターです。
+  // 汎用プリセットの場合はAI判定の業種ラベル（例: 学習塾）をそのまま役割に使う
+  const role =
+    input.basics.industryType === 'generic' && input.basics.industryLabel
+      ? input.basics.industryLabel
+      : preset.writerRole;
+  return `あなたは${role}専門のWebコピーライターです。
 中小事業者のWebサイトの文章を書きます。
 
 守るべき原則:

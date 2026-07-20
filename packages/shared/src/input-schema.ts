@@ -25,10 +25,18 @@ const urlField = z
 export const basicsSchema = z.object({
   officeName: requiredText('事務所名', 100),
   officeNameKana: requiredText('ふりがな', 100),
-  industryType: z.enum(
-    Object.keys(INDUSTRY_TYPES) as [keyof typeof INDUSTRY_TYPES, ...(keyof typeof INDUSTRY_TYPES)[]],
-    { errorMap: () => ({ message: '士業種別を選択してください' }) },
-  ),
+  // 業種プリセット: オペレーター入力ではなくStep1確定時にAIが判定して埋める
+  // （判定失敗・旧データはgeneric扱い。Step2で確認・修正できる）
+  industryType: z
+    .enum(
+      Object.keys(INDUSTRY_TYPES) as [
+        keyof typeof INDUSTRY_TYPES,
+        ...(keyof typeof INDUSTRY_TYPES)[],
+      ],
+    )
+    .default('generic'),
+  /** 肩書き等に使う自然な業種ラベル（AI判定。例:「学習塾」「工務店」）。無ければプリセット名 */
+  industryLabel: z.string().max(40).optional(),
   businessSummary: requiredText('業務内容の一言説明', 200),
   address: requiredText('所在地', 200),
   serviceAreaText: requiredText('商圏（例: 大阪市内・北摂エリア）', 200),

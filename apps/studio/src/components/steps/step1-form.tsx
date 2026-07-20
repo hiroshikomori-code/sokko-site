@@ -5,7 +5,6 @@ import { useForm, type Path } from 'react-hook-form';
 import {
   CTA_TYPES,
   DEFAULT_PAGE_KEYS,
-  INDUSTRY_TYPES,
   PAGE_LABELS,
   TONES,
   type ProjectInputDraft,
@@ -141,6 +140,8 @@ function toInput(v: FormValues) {
   return {
     basics: {
       ...v.basics,
+      // 業種はフォームで選ばせない（空文字はスキーマdefault=genericに落とす。確定時にAIが上書き）
+      industryType: v.basics.industryType || undefined,
       foundedYear: v.basics.foundedYear || undefined,
       representativeName: v.basics.representativeName || undefined,
       existingSiteUrl: v.basics.existingSiteUrl || undefined,
@@ -333,21 +334,12 @@ export function Step1Form({
               <input className={inputCls} {...register('basics.officeNameKana')} />
             </Field>
           </div>
-          <Field label="業種" required path="basics.industryType">
-            <select className={inputCls} {...register('basics.industryType')}>
-              <option value="">選択してください</option>
-              {Object.entries(INDUSTRY_TYPES).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </Field>
+          {/* 業種はここでは選ばせない: 確定時にAIが業務内容から判定し、Step2で確認できる */}
           <Field
             label="業務内容の一言説明"
             required
             path="basics.businessSummary"
-            hint="例: 中小企業の税務顧問と相続税申告が専門の税理士事務所"
+            hint="例: 中小企業の税務顧問と相続税申告が専門の税理士事務所（業種はこの内容からAIが自動判定します）"
           >
             <input className={inputCls} {...register('basics.businessSummary')} />
           </Field>

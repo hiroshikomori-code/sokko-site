@@ -1,9 +1,14 @@
-/** 業種（MVPは士業3種＋IT。プリセット追加で順次拡張） */
+/**
+ * 業種プリセットキー。オペレーターは選択せず、Step1確定時にAIが
+ * 業務内容から自動判定する（Step2で確認・修正可能）。
+ * どのプリセットにも該当しない業種は generic（汎用）に落ちる
+ */
 export const INDUSTRY_TYPES = {
   tax: '税理士',
   labor: '社会保険労務士',
   gyosei: '行政書士',
   it: 'IT・システム開発',
+  generic: 'その他の事業者',
 } as const;
 export type IndustryType = keyof typeof INDUSTRY_TYPES;
 
@@ -86,6 +91,21 @@ export const INDUSTRY_PRESETS: Record<
     navLabels: {
       about: '会社概要',
       cases: '導入事例',
+    },
+  },
+  // 汎用（プリセット未整備の業種の受け皿。ラベルは業種を特定しない言い回し）
+  generic: {
+    writerRole: '中小事業者',
+    schemaType: 'LocalBusiness',
+    pageLabels: {
+      services: 'サービス・事業内容',
+      about: '私たちについて',
+      cases: 'お客様の声・事例',
+    },
+    navLabels: {
+      services: 'サービス',
+      about: '私たちについて',
+      cases: 'お客様の声',
     },
   },
 };

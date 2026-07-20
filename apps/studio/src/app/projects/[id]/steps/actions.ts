@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { projectInputSchema, type ProjectInput } from '@sokko/shared';
 import { getCurrentUser } from '@/lib/auth';
+import { classifyIndustry } from '@/lib/industry-classifier';
 import { createClient } from '@/lib/supabase/server';
 
 export type SaveResult =
@@ -60,12 +61,35 @@ export async function submitStep1(
 
   const { data: project } = await supabase
     .from('projects')
-    .select('current_step, status')
+    .select('current_step, status, input')
     .eq('id', projectId)
     .single();
   if (!project) return { ok: false, error: '案件が見つかりません' };
   if (!['draft', 'revising'].includes(project.status)) {
     return { ok: false, error: 'この状態では入力を変更できません' };
+  }
+
+  // 業種はオペレーターに選ばせず、内容からAIが判定する（Step2で確認・修正可能）。
+  // 広告規制の重い業種（医療等）はここで検知して止める＝自己申告より確実なゲート
+  const judgement = await classifyIndustry({
+    officeName: data.basics.officeName,
+    businessSummary: data.basics.businessSummary,
+    strengths: data.strengths.strengths,
+  });
+  if (judgement?.restricted) {
+    return {
+      ok: false,
+      error: `この業種（${judgement.industryLabel}）は広告表現の規制が特に厳しいため、現在は対応準備中です。システム管理者にご相談ください${judgement.restrictedReason ? `（判定理由: ${judgement.restrictedReason}）` : ''}`,
+    };
+  }
+  if (judgement) {
+    data.basics.industryType = judgement.presetKey;
+    data.basics.industryLabel = judgement.industryLabel;
+  } else {
+    // 判定失敗時（API障害）: 過去の判定結果を引き継いで確定はブロックしない
+    const prev = (project.input as ProjectInput | null)?.basics;
+    if (prev?.industryType) data.basics.industryType = prev.industryType;
+    if (prev?.industryLabel) data.basics.industryLabel = prev.industryLabel;
   }
 
   const { error } = await supabase

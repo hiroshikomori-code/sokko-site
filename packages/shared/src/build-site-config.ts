@@ -102,7 +102,8 @@ export function buildSiteConfig(
     business: {
       officeName: input.basics.officeName,
       officeNameKana: input.basics.officeNameKana,
-      industryLabel: INDUSTRY_TYPES[input.basics.industryType],
+      industryLabel:
+        input.basics.industryLabel ?? INDUSTRY_TYPES[input.basics.industryType],
       schemaType: INDUSTRY_PRESETS[input.basics.industryType].schemaType,
       description: input.basics.businessSummary,
       address: input.basics.address,
