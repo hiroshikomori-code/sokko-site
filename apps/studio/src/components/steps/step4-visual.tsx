@@ -113,6 +113,16 @@ export function Step4Visual({
       const result = await saveVisualSlot(projectId, def.slot, path);
       if (!result.ok) throw new Error(result.error);
 
+      // ヒーローはモバイル用縮小版も自動生成（srcsetで配信し表示速度を守る）
+      if (def.slot === 'hero') {
+        const smBlob = await downscale(file, 750);
+        const smPath = path.replace(/(\.\w+)$/, '-sm$1');
+        const { error: smError } = await supabase.storage
+          .from('assets')
+          .upload(smPath, smBlob, { contentType: smBlob.type, upsert: false });
+        if (!smError) await saveVisualSlot(projectId, 'hero_sm', smPath);
+      }
+
       setVisuals((prev) => ({ ...prev, [def.slot]: path }));
       router.refresh();
     } catch (err) {
@@ -125,6 +135,7 @@ export function Step4Visual({
   const onRemove = async (slot: string) => {
     setError(null);
     setBusySlot(slot);
+    if (slot === 'hero') await saveVisualSlot(projectId, 'hero_sm', null);
     const result = await saveVisualSlot(projectId, slot, null);
     if (result.ok) {
       setVisuals((prev) => {

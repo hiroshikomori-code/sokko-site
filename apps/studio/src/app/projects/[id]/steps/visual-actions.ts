@@ -4,7 +4,8 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 
-const VISUAL_SLOTS = ['logo', 'hero', 'representative', 'office'] as const;
+// hero_sm はヒーローのモバイル用縮小版（Step4がhero保存時に自動生成）
+const VISUAL_SLOTS = ['logo', 'hero', 'hero_sm', 'representative', 'office'] as const;
 
 export type SaveVisualResult = { ok: true } | { ok: false; error: string };
 

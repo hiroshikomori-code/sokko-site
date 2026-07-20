@@ -67,16 +67,19 @@ export function Hero({ section, config }: SectionProps) {
   const kicker = `${config.business.serviceAreaCities[0] ?? ''}の${config.business.industryLabel}`;
 
   if (heroImage) {
+    const heroSm = config.images?.heroSm;
     // 写真あり: 左を深く沈めたグラデーションで文字コントラストを担保（アクセシビリティ要件）
+    // 背景はCSSでなく<img>にする: LCP要素として高優先で取得され、srcsetで
+    // モバイルに縮小版を配れる（CSS背景は両方できない）
     return (
       <section className="relative overflow-hidden bg-[var(--sk-deep)]">
-        {/* CSS背景はブラウザの発見が遅くLCPが悪化するため、preloadで前倒し
-            （React 19が<link>をheadへ自動巻き上げ） */}
-        <link rel="preload" as="image" href={heroImage} fetchPriority="high" />
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroImage})` }}
-          aria-hidden
+        <img
+          src={heroImage}
+          srcSet={heroSm ? `${heroSm} 750w, ${heroImage} 1600w` : undefined}
+          sizes="100vw"
+          alt=""
+          fetchPriority="high"
+          className="absolute inset-0 h-full w-full object-cover object-center"
         />
         <div
           className="absolute inset-0 bg-[linear-gradient(105deg,rgba(16,17,22,0.82)_25%,rgba(16,17,22,0.38))]"

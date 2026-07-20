@@ -26,7 +26,12 @@ export type BuildSiteConfigOptions = {
   bakedAnnouncements: { id: string; body: string; publishedAt: string }[];
   logoPath?: string;
   /** 画像スロットの公開URL（Step4で割当。未設定は写真なしデザイン） */
-  images?: { hero?: string; representative?: string; office?: string };
+  images?: {
+    hero?: string;
+    heroSm?: string;
+    representative?: string;
+    office?: string;
+  };
   /** デザインバリアント（projects.design_variant。未指定はclassic） */
   variant?: DesignVariant;
 };

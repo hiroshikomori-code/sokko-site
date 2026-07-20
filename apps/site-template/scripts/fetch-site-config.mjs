@@ -62,7 +62,7 @@ async function localize(url, name) {
   return `/media/${name}.${ext}`;
 }
 if (config.images) {
-  for (const slot of ['hero', 'representative', 'office']) {
+  for (const slot of ['hero', 'heroSm', 'representative', 'office']) {
     config.images[slot] = await localize(config.images[slot], slot);
   }
 }

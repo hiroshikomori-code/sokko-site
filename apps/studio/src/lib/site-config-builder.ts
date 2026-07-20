@@ -76,11 +76,13 @@ export async function buildAndSaveSiteConfig(
   const visuals = (project.visuals ?? {}) as {
     logo?: string;
     hero?: string;
+    hero_sm?: string;
     representative?: string;
     office?: string;
   };
   const images = {
     hero: publicUrl(visuals.hero),
+    heroSm: publicUrl(visuals.hero_sm),
     representative: publicUrl(visuals.representative),
     office: publicUrl(visuals.office),
   };

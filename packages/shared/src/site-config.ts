@@ -98,6 +98,8 @@ export const siteConfigSchema = z.object({
   images: z
     .object({
       hero: imagePathSchema.optional(),
+      /** ヒーローのモバイル用縮小版（srcset用。無ければheroのみで配信） */
+      heroSm: imagePathSchema.optional(),
       representative: imagePathSchema.optional(),
       office: imagePathSchema.optional(),
     })
