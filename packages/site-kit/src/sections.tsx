@@ -40,6 +40,22 @@ function Kicker({
   );
 }
 
+/**
+ * future限定: ヒーローの発光ネットワーク背景（約1.5KBのバニラJS）。
+ * - prefers-reduced-motion時は描画しない（静止画のまま）
+ * - 粒子数は幅に応じて最大40、色は --sk-gold（発光アクセント）を継承
+ * - 静的エクスポート・studioプレビューの両方でそのまま動く
+ */
+const AMBIENT_SCRIPT =
+  "(function(){var s=document.currentScript;if(!s)return;if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;function start(){var host=s.parentElement;if(!host)return;var c=document.createElement('canvas');c.setAttribute('aria-hidden','true');c.className='absolute inset-0 h-full w-full opacity-60';host.insertBefore(c,s);var x=c.getContext('2d');if(!x)return;var W,H;function size(){W=c.width=c.offsetWidth;H=c.height=c.offsetHeight}size();addEventListener('resize',size);var N=Math.min(40,Math.floor((W||1200)/32)),P=[];for(var i=0;i<N;i++)P.push({x:Math.random(),y:Math.random(),vx:(Math.random()-.5)*.0008,vy:(Math.random()-.5)*.0008});var accent=(getComputedStyle(c).getPropertyValue('--sk-gold')||'#67e8f9').trim();var R=150;function tick(){x.clearRect(0,0,W,H);var i,j;for(i=0;i<N;i++){var p=P[i];p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>1)p.vx*=-1;if(p.y<0||p.y>1)p.vy*=-1}x.strokeStyle=accent;for(i=0;i<N;i++)for(j=i+1;j<N;j++){var a=P[i],b=P[j],dx=(a.x-b.x)*W,dy=(a.y-b.y)*H,d=dx*dx+dy*dy;if(d<R*R){x.globalAlpha=.14*(1-d/(R*R));x.beginPath();x.moveTo(a.x*W,a.y*H);x.lineTo(b.x*W,b.y*H);x.stroke()}}x.fillStyle=accent;x.globalAlpha=.7;for(i=0;i<N;i++){x.beginPath();x.arc(P[i].x*W,P[i].y*H,1.6,0,6.2832);x.fill()}requestAnimationFrame(tick)}requestAnimationFrame(tick)}if(document.readyState==='complete'){setTimeout(start,0)}else{addEventListener('load',function(){setTimeout(start,120)})}})();";
+
+function HeroAmbient({ config }: { config: SiteConfig }) {
+  if ((config.design.variant ?? 'classic') !== 'future') return null;
+  // canvasはハイドレーション完了後（load後）にスクリプトが動的挿入する。
+  // Reactにcanvasを管理させると、サイズ設定でhydration mismatchになるため
+  return <script dangerouslySetInnerHTML={{ __html: AMBIENT_SCRIPT }} />;
+}
+
 function CtaButton({ config, light }: { config: SiteConfig; light?: boolean }) {
   const { cta } = config;
   const href =
@@ -85,6 +101,7 @@ export function Hero({ section, config }: SectionProps) {
           className="absolute inset-0 bg-[linear-gradient(105deg,rgba(16,17,22,0.82)_25%,rgba(16,17,22,0.38))]"
           aria-hidden
         />
+        <HeroAmbient config={config} />
         <div className={`${container} relative py-28 sm:py-36`}>
           <Kicker text={kicker} light />
           <h1
@@ -118,6 +135,7 @@ export function Hero({ section, config }: SectionProps) {
         className="absolute inset-0 bg-[radial-gradient(60rem_30rem_at_85%_-15%,var(--sk-primary-soft),transparent)]"
         aria-hidden
       />
+      <HeroAmbient config={config} />
       <div className={`${container} relative py-24 sm:py-32`}>
         <Kicker text={kicker} />
         <h1

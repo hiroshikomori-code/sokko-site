@@ -47,6 +47,8 @@ export const sitePageSchema = z.object({
   path: z.string(),
   title: z.string(),
   description: z.string(),
+  /** ナビ表記（業種プリセット由来。無ければ NAV_LABELS の既定を使う） */
+  navLabel: z.string().optional(),
   sections: z.array(sectionSchema),
 });
 export type SitePage = z.infer<typeof sitePageSchema>;
@@ -71,6 +73,8 @@ export const siteConfigSchema = z.object({
     officeName: z.string(),
     officeNameKana: z.string(),
     industryLabel: z.string(),
+    /** JSON-LDの@type（業種プリセット由来。過去configはdefaultでLegalService） */
+    schemaType: z.string().default('LegalService'),
     /** JSON-LD @type: LegalService 等のエンティティ記述に使用 */
     description: z.string(),
     address: z.string(),

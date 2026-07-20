@@ -10,6 +10,15 @@ import { cssVariables } from './tokens';
 const display =
   'font-[family-name:var(--sk-font-display)] [font-weight:var(--sk-display-weight)] tracking-wide [font-feature-settings:"palt"]';
 
+/**
+ * スクロール連動の控えめなフェードイン（CSSのみ・JS不要）。
+ * - reduced-motion指定時は無効
+ * - animation-timeline非対応ブラウザ（Safari等）は@supportsで自動的に静的表示
+ * - aria-hidden（装飾レイヤー）は動かさない
+ */
+const REVEAL_CSS =
+  '@media (prefers-reduced-motion: no-preference){@supports (animation-timeline: view()){main section > div:not([aria-hidden]){animation:sk-rise .8s cubic-bezier(.2,.7,.3,1) both;animation-timeline:view();animation-range:entry 0% entry 45%}}}@keyframes sk-rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}';
+
 export function SiteShell({
   config,
   currentPath,
@@ -23,8 +32,10 @@ export function SiteShell({
   return (
     <div
       style={cssVariables(config.design) as React.CSSProperties}
+      data-sk-variant={config.design.variant ?? 'classic'}
       className="min-h-screen bg-[var(--sk-paper)] font-sans text-[var(--sk-ink)] antialiased"
     >
+      <style dangerouslySetInnerHTML={{ __html: REVEAL_CSS }} />
       <div
         aria-hidden
         className="h-0.5 bg-gradient-to-r from-[var(--sk-primary)] via-[var(--sk-gold)] to-[var(--sk-primary)]"
@@ -67,7 +78,7 @@ export function SiteShell({
                         : 'text-[var(--sk-ink-soft)] transition-colors hover:text-[var(--sk-ink)]'
                     }`}
                   >
-                    {NAV_LABELS[p.key]}
+                    {p.navLabel ?? NAV_LABELS[p.key]}
                   </a>
                 </li>
               ))}
@@ -101,7 +112,7 @@ export function SiteShell({
                       href={p.path}
                       className="transition-colors hover:text-white"
                     >
-                      {NAV_LABELS[p.key]}
+                      {p.navLabel ?? NAV_LABELS[p.key]}
                     </a>
                   </li>
                 ))}

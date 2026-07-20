@@ -17,6 +17,7 @@ export const SAMPLE_SITE_CONFIG: SiteConfig = {
     officeName: 'やまだ税理士事務所',
     officeNameKana: 'やまだぜいりしじむしょ',
     industryLabel: '税理士',
+    schemaType: 'AccountingService',
     description:
       '大阪市北区の税理士事務所。中小企業の税務顧問と相続税申告を専門とし、北摂エリアの飲食店・小売店を中心に支援しています。',
     address: '大阪府大阪市北区梅田1-2-3 サンプルビル4F',

@@ -114,14 +114,19 @@ export async function checkSite(
     // （TailwindのCSS変数「--tw-…:100%」等を誤検知しないように）
     const body = document.querySelector('body');
     body?.querySelectorAll('style,script,noscript,template').forEach((el) => el.remove());
-    const bodyText = body?.textContent ?? '';
+    const bodyText = (body?.textContent ?? '').replace(/\s+/g, ' ');
     for (const expression of PROHIBITED_EXPRESSIONS) {
-      if (bodyText.includes(expression)) {
+      const at = bodyText.indexOf(expression);
+      if (at >= 0) {
+        // 該当箇所の前後を引用（オペレーターが自力で場所を特定できるように）
+        const excerpt = bodyText
+          .slice(Math.max(0, at - 25), at + expression.length + 25)
+          .trim();
         findings.push({
           level: 'block',
           path: page.path,
           code: 'prohibited_expression',
-          message: `広告規制上問題になりうる表現「${expression}」が含まれています`,
+          message: `広告規制上問題になりうる表現「${expression}」が含まれています → 「…${excerpt}…」（文言編集で修正できます）`,
         });
       }
     }

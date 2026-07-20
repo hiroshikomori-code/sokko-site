@@ -9,7 +9,7 @@ export function buildJsonLd(config: SiteConfig): object[] {
 
   const legalService: Record<string, unknown> = {
     '@context': 'https://schema.org',
-    '@type': 'LegalService',
+    '@type': business.schemaType ?? 'LegalService',
     '@id': `${meta.baseUrl}/#business`,
     name: business.officeName,
     alternateName: business.officeNameKana,

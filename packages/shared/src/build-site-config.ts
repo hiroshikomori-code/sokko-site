@@ -1,6 +1,8 @@
 import {
   CTA_TYPES,
+  INDUSTRY_PRESETS,
   INDUSTRY_TYPES,
+  navLabelFor,
   PAGE_LABELS,
   PAGE_PATHS,
   type DesignVariant,
@@ -49,6 +51,7 @@ export function buildSiteConfig(
   if (!meta) throw new Error('サイト全体メタ（_meta）が未生成です');
   const siteMeta = siteMetaContentSchema.parse(meta.content);
 
+  const industry = input.basics.industryType;
   const pages: SitePage[] = [];
   for (const key of input.pages.pageKeys as PageKey[]) {
     if (key === 'news') {
@@ -57,6 +60,7 @@ export function buildSiteConfig(
         path: PAGE_PATHS.news,
         title: `お知らせ｜${input.basics.officeName}`,
         description: `${input.basics.officeName}からのお知らせ一覧。`,
+        navLabel: navLabelFor(industry, key),
         sections: [{ type: 'news', heading: 'お知らせ' }],
       });
       continue;
@@ -82,6 +86,7 @@ export function buildSiteConfig(
       path: PAGE_PATHS[key],
       title: content.title,
       description: content.description,
+      navLabel: navLabelFor(industry, key),
       sections,
     });
   }
@@ -98,6 +103,7 @@ export function buildSiteConfig(
       officeName: input.basics.officeName,
       officeNameKana: input.basics.officeNameKana,
       industryLabel: INDUSTRY_TYPES[input.basics.industryType],
+      schemaType: INDUSTRY_PRESETS[input.basics.industryType].schemaType,
       description: input.basics.businessSummary,
       address: input.basics.address,
       phone: input.basics.phone,

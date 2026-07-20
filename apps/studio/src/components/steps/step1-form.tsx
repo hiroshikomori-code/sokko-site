@@ -326,14 +326,14 @@ export function Step1Form({
       <fieldset disabled={readOnly || pending} className="space-y-6">
         <Section code="A" title="事業の基本情報">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="事務所名" required path="basics.officeName">
+            <Field label="事業者名（会社名・店舗名・事務所名）" required path="basics.officeName">
               <input className={inputCls} {...register('basics.officeName')} />
             </Field>
             <Field label="ふりがな" required path="basics.officeNameKana">
               <input className={inputCls} {...register('basics.officeNameKana')} />
             </Field>
           </div>
-          <Field label="士業種別" required path="basics.industryType">
+          <Field label="業種" required path="basics.industryType">
             <select className={inputCls} {...register('basics.industryType')}>
               <option value="">選択してください</option>
               {Object.entries(INDUSTRY_TYPES).map(([k, v]) => (
@@ -415,7 +415,7 @@ export function Step1Form({
               />
             </Field>
           ))}
-          <Field label="他事務所との違い" required path="strengths.differentiator">
+          <Field label="同業他社との違い" required path="strengths.differentiator">
             <textarea
               rows={3}
               className={inputCls}
@@ -564,7 +564,7 @@ export function Step1Form({
               label="写真の点数"
               required
               path="assets.photoCount"
-              hint="0の場合はストック写真・AI生成で補います"
+              hint="0でも公開できます（写真なしのデザインに自動調整）"
             >
               <input
                 type="number"

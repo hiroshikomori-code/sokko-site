@@ -1,8 +1,9 @@
-/** 士業種別（MVP対象の3業種） */
+/** 業種（MVPは士業3種＋IT。プリセット追加で順次拡張） */
 export const INDUSTRY_TYPES = {
   tax: '税理士',
   labor: '社会保険労務士',
   gyosei: '行政書士',
+  it: 'IT・システム開発',
 } as const;
 export type IndustryType = keyof typeof INDUSTRY_TYPES;
 
@@ -51,6 +52,51 @@ export const NAV_LABELS: Record<PageKey, string> = {
   contact: 'お問い合わせ',
   news: 'お知らせ',
 };
+
+/**
+ * 業種プリセット（ユーザビリティテスト2026-07-20の宿題①）。
+ * 業種ごとの言葉づかい・構造化データ種別をデータで持ち、
+ * 新業種はここへの追記だけで対応できるようにする。
+ * ラベル未指定のページは PAGE_LABELS / NAV_LABELS の既定（士業標準）を使う。
+ */
+export const INDUSTRY_PRESETS: Record<
+  IndustryType,
+  {
+    /** 生成プロンプトで使う業種の説明（「◯◯専門のコピーライター」等） */
+    writerRole: string;
+    /** JSON-LDの@type（LocalBusiness系のサブタイプ） */
+    schemaType: string;
+    pageLabels?: Partial<Record<PageKey, string>>;
+    navLabels?: Partial<Record<PageKey, string>>;
+  }
+> = {
+  tax: { writerRole: '士業（税理士）', schemaType: 'AccountingService' },
+  labor: { writerRole: '士業（社会保険労務士）', schemaType: 'LegalService' },
+  gyosei: { writerRole: '士業（行政書士）', schemaType: 'LegalService' },
+  it: {
+    writerRole: 'IT企業（システム開発・DX支援）',
+    schemaType: 'ProfessionalService',
+    pageLabels: {
+      services: 'サービス',
+      pricing: '料金プラン',
+      about: '会社概要・代表紹介',
+      cases: '導入事例',
+      contact: 'お問い合わせ・無料相談',
+    },
+    navLabels: {
+      about: '会社概要',
+      cases: '導入事例',
+    },
+  },
+};
+
+/** 業種を考慮したページ正式名／ナビ表記 */
+export function pageLabelFor(industry: IndustryType, key: PageKey): string {
+  return INDUSTRY_PRESETS[industry].pageLabels?.[key] ?? PAGE_LABELS[key];
+}
+export function navLabelFor(industry: IndustryType, key: PageKey): string {
+  return INDUSTRY_PRESETS[industry].navLabels?.[key] ?? NAV_LABELS[key];
+}
 
 export const PAGE_PATHS: Record<PageKey, string> = {
   home: '/',
