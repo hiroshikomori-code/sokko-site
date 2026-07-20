@@ -70,6 +70,9 @@ export function Hero({ section, config }: SectionProps) {
     // 写真あり: 左を深く沈めたグラデーションで文字コントラストを担保（アクセシビリティ要件）
     return (
       <section className="relative overflow-hidden bg-[var(--sk-deep)]">
+        {/* CSS背景はブラウザの発見が遅くLCPが悪化するため、preloadで前倒し
+            （React 19が<link>をheadへ自動巻き上げ） */}
+        <link rel="preload" as="image" href={heroImage} fetchPriority="high" />
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroImage})` }}

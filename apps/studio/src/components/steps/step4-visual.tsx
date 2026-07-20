@@ -49,12 +49,16 @@ const SLOTS: SlotDef[] = [
 
 const PUBLIC_BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/`;
 
-/** 画像をブラウザ側で縮小（品質ゲートの表示速度を守る） */
+/**
+ * 画像をブラウザ側で縮小＋WebP変換（品質ゲートの表示速度を守る）。
+ * WebPはJPEG比で3〜5割軽く、透過（ロゴ）にも対応するため全スロット共通で変換する。
+ */
 async function downscale(file: File, maxWidth: number): Promise<Blob> {
-  const isPng = file.type === 'image/png';
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, maxWidth / bitmap.width);
-  if (scale === 1 && file.size < 500_000) return file;
+  if (file.type === 'image/webp' && scale === 1 && file.size < 300_000) {
+    return file;
+  }
 
   const canvas = document.createElement('canvas');
   canvas.width = Math.round(bitmap.width * scale);
@@ -63,8 +67,8 @@ async function downscale(file: File, maxWidth: number): Promise<Blob> {
   return new Promise((resolve, reject) =>
     canvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error('画像の変換に失敗'))),
-      isPng ? 'image/png' : 'image/jpeg',
-      0.82,
+      'image/webp',
+      0.8,
     ),
   );
 }
@@ -94,7 +98,8 @@ export function Step4Visual({
         throw new Error('画像ファイルを選択してください');
       }
       const blob = await downscale(file, def.maxWidth);
-      const ext = blob.type === 'image/png' ? 'png' : 'jpg';
+      const ext =
+        blob.type === 'image/webp' ? 'webp' : blob.type === 'image/png' ? 'png' : 'jpg';
       const path = `projects/${projectId}/${def.slot}-${Date.now()}.${ext}`;
 
       const supabase = createClient();

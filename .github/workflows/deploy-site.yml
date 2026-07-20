@@ -124,3 +124,15 @@ jobs:
             -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
             -H "Content-Type: application/json" \
             -d "{\"project_id\": \"${{ inputs.project_id }}\", \"action\": \"deployed_${{ inputs.env }}\", \"detail\": {\"url\": \"${DEPLOY_URL}\", \"run_id\": \"${{ github.run_id }}\"}}"
+
+      # 失敗時は管理者LINEへ1本通知（観測性の最小構成。通知失敗でrunは落とさない）
+      - name: Notify admin on failure
+        if: failure()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          curl -s -X POST "${SUPABASE_URL}/functions/v1/notify-admin" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"text\": \"ソッコーサイト: サイトデプロイに失敗しました（${{ inputs.env }} / project=${{ inputs.project_id }}）\n詳細: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" || true
