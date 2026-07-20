@@ -9,7 +9,12 @@ import {
   TONES,
   type ProjectInputDraft,
 } from '@sokko/shared';
-import { saveStep1Draft, submitStep1 } from '@/app/projects/[id]/steps/actions';
+import {
+  draftStep1FromMemo,
+  saveStep1Draft,
+  submitStep1,
+} from '@/app/projects/[id]/steps/actions';
+import type { Step1DraftSuggestion } from '@/lib/step1-drafter';
 
 /** フォーム内部の値（未入力を許容し、確定時に共有スキーマで検証する） */
 type FormValues = {
@@ -213,6 +218,7 @@ export function Step1Form({
   const [pending, startTransition] = useTransition();
   const [notice, setNotice] = useState<string | null>(null);
   const [topError, setTopError] = useState<string | null>(null);
+  const [memoText, setMemoText] = useState('');
 
   const err = (path: string): string | undefined => {
     const parts = path.split('.');
@@ -231,6 +237,101 @@ export function Step1Form({
       setNotice(result.ok ? '下書きを保存しました' : null);
       if (!result.ok) setTopError(result.error);
       setTimeout(() => setNotice(null), 3000);
+    });
+  };
+
+  /** AI下書きを空欄にだけ流し込む（入力済みの欄は上書きしない） */
+  const applyDraft = (d: Step1DraftSuggestion) => {
+    const v = getValues();
+    const keep = (cur: string, next?: string) => (cur.trim() ? cur : (next ?? ''));
+    form.reset({
+      ...v,
+      basics: {
+        ...v.basics,
+        officeName: keep(v.basics.officeName, d.basics?.officeName),
+        officeNameKana: keep(v.basics.officeNameKana, d.basics?.officeNameKana),
+        businessSummary: keep(v.basics.businessSummary, d.basics?.businessSummary),
+        address: keep(v.basics.address, d.basics?.address),
+        serviceAreaText: keep(v.basics.serviceAreaText, d.basics?.serviceAreaText),
+        phone: keep(v.basics.phone, d.basics?.phone),
+        businessHours: keep(v.basics.businessHours, d.basics?.businessHours),
+        closedDays: keep(v.basics.closedDays, d.basics?.closedDays),
+        foundedYear: keep(v.basics.foundedYear, d.basics?.foundedYear),
+        representativeName: keep(
+          v.basics.representativeName,
+          d.basics?.representativeName,
+        ),
+        existingSiteUrl: keep(v.basics.existingSiteUrl, d.basics?.existingSiteUrl),
+      },
+      strengths: {
+        ...v.strengths,
+        strengths: [
+          keep(v.strengths.strengths[0], d.strengths?.strengths?.[0]),
+          keep(v.strengths.strengths[1], d.strengths?.strengths?.[1]),
+          keep(v.strengths.strengths[2], d.strengths?.strengths?.[2]),
+        ] as [string, string, string],
+        differentiator: keep(v.strengths.differentiator, d.strengths?.differentiator),
+        foundingStory: keep(v.strengths.foundingStory, d.strengths?.foundingStory),
+        achievements: keep(v.strengths.achievements, d.strengths?.achievements),
+        certifications: keep(v.strengths.certifications, d.strengths?.certifications),
+      },
+      target: {
+        customerProfile: keep(v.target.customerProfile, d.target?.customerProfile),
+        customerNeeds: keep(v.target.customerNeeds, d.target?.customerNeeds),
+        searchKeywordsText: keep(
+          v.target.searchKeywordsText,
+          d.target?.searchKeywords?.join('\n'),
+        ),
+      },
+      cta: { ...v.cta, primaryAction: keep(v.cta.primaryAction, d.cta?.primaryAction) },
+      mood: {
+        ...v.mood,
+        tone: keep(v.mood.tone, d.mood?.tone),
+        // 既定色のままなら提案色を採用（オペレーターが選んだ色は守る）
+        mainColor:
+          v.mood.mainColor && v.mood.mainColor !== '#1e3a5f'
+            ? v.mood.mainColor
+            : (d.mood?.mainColor ?? v.mood.mainColor),
+      },
+      aeo: {
+        ...v.aeo,
+        serviceAreaCitiesText: keep(
+          v.aeo.serviceAreaCitiesText,
+          d.aeo?.serviceAreaCities?.join('\n'),
+        ),
+        positioningStatement: keep(
+          v.aeo.positioningStatement,
+          d.aeo?.positioningStatement,
+        ),
+        competitor1: keep(v.aeo.competitor1, d.aeo?.competitors?.[0]),
+        competitor2: keep(v.aeo.competitor2, d.aeo?.competitors?.[1]),
+      },
+      operation: {
+        ...v.operation,
+        desiredLaunchDate: keep(
+          v.operation.desiredLaunchDate,
+          d.operation?.desiredLaunchDate,
+        ),
+        updateFrequency: keep(v.operation.updateFrequency, d.operation?.updateFrequency),
+        updateOwner: keep(v.operation.updateOwner, d.operation?.updateOwner),
+      },
+    });
+  };
+
+  const onDraftFromMemo = () => {
+    startTransition(async () => {
+      setTopError(null);
+      setNotice(null);
+      const result = await draftStep1FromMemo(memoText);
+      if (!result.ok) {
+        setTopError(result.error);
+        return;
+      }
+      applyDraft(result.draft);
+      setNotice(
+        'メモから下書きを作成しました。各項目を確認・修正してから確定してください（★印の項目は特に確認を）',
+      );
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   };
 
@@ -322,6 +423,40 @@ export function Step1Form({
         >
           {topError ?? notice}
         </div>
+      )}
+
+      {!readOnly && (
+        <section className="rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 p-6">
+          <h3 className="text-sm font-bold text-neutral-900">
+            打ち合わせメモから自動入力
+            <span className="ml-2 rounded bg-neutral-900 px-1.5 py-0.5 text-[10px] font-bold text-white">
+              AI
+            </span>
+          </h3>
+          <p className="mt-1 text-xs text-neutral-500">
+            議事録やメモをそのまま貼り付けると、AIが下の項目に下書きを入れます（入力済みの欄は上書きしません）。手入力で埋めても構いません。
+          </p>
+          <textarea
+            rows={5}
+            value={memoText}
+            onChange={(e) => setMemoText(e.target.value)}
+            disabled={pending}
+            placeholder={
+              '例:\n山田さん（山田製作所・金属加工）と打ち合わせ。堺市の町工場、従業員8名。試作の速さが売りで…'
+            }
+            className="mt-3 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
+          />
+          <div className="mt-2 flex justify-end">
+            <button
+              type="button"
+              onClick={onDraftFromMemo}
+              disabled={pending || memoText.trim().length < 30}
+              className="rounded-md bg-neutral-900 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+            >
+              {pending ? 'AIが下書きを作成中…（10〜20秒）' : 'AIで下書きを作成'}
+            </button>
+          </div>
+        </section>
       )}
 
       <fieldset disabled={readOnly || pending} className="space-y-6">

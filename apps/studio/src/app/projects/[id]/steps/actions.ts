@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { projectInputSchema, type ProjectInput } from '@sokko/shared';
 import { getCurrentUser } from '@/lib/auth';
 import { classifyIndustry } from '@/lib/industry-classifier';
+import { draftStep1, type Step1DraftSuggestion } from '@/lib/step1-drafter';
 import { createClient } from '@/lib/supabase/server';
 
 export type SaveResult =
@@ -30,6 +31,40 @@ export async function saveStep1Draft(
 
   if (error) return { ok: false, error: '保存に失敗しました' };
   return { ok: true };
+}
+
+/**
+ * 打ち合わせメモからStep1の下書きを生成（②ユーザビリティテストの宿題）。
+ * 保存はしない: 返した下書きをフォーム側が「空欄のみ」に流し込み、
+ * オペレーターが確認・修正してから確定する。
+ */
+export async function draftStep1FromMemo(
+  memo: string,
+): Promise<
+  { ok: true; draft: Step1DraftSuggestion } | { ok: false; error: string }
+> {
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+
+  const normalized = memo
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g, '')
+    .trim()
+    .slice(0, 12000);
+  if (normalized.length < 30) {
+    return {
+      ok: false,
+      error: 'メモが短すぎます。打ち合わせの内容をそのまま貼り付けてください',
+    };
+  }
+
+  try {
+    const draft = await draftStep1(normalized);
+    return { ok: true, draft };
+  } catch (err) {
+    console.error('draftStep1FromMemo failed:', err);
+    return { ok: false, error: '下書きの生成に失敗しました。もう一度お試しください' };
+  }
 }
 
 /**

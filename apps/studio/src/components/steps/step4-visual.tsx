@@ -3,7 +3,10 @@
 import { useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { saveVisualSlot } from '@/app/projects/[id]/steps/visual-actions';
+import {
+  generateHeroImageForProject,
+  saveVisualSlot,
+} from '@/app/projects/[id]/steps/visual-actions';
 import { advanceStep } from '@/app/projects/[id]/steps/review-actions';
 
 /**
@@ -77,10 +80,13 @@ export function Step4Visual({
   projectId,
   initialVisuals,
   readOnly,
+  aiImageEnabled,
 }: {
   projectId: string;
   initialVisuals: Record<string, string>;
   readOnly: boolean;
+  /** GEMINI_API_KEY設定時のみtrue（ヒーローのAI生成ボタンを表示） */
+  aiImageEnabled: boolean;
 }) {
   const router = useRouter();
   const [visuals, setVisuals] = useState(initialVisuals);
@@ -128,6 +134,23 @@ export function Step4Visual({
     } catch (err) {
       setError(err instanceof Error ? err.message : 'アップロードに失敗しました');
     } finally {
+      setBusySlot(null);
+    }
+  };
+
+  /** ヒーローのAI生成: 生成結果を通常のアップロード経路（WebP変換・縮小版付き）に流す */
+  const onGenerateHero = async () => {
+    setError(null);
+    setBusySlot('hero');
+    try {
+      const result = await generateHeroImageForProject(projectId);
+      if (!result.ok) throw new Error(result.error);
+      const blob = await (await fetch(result.dataUrl)).blob();
+      const file = new File([blob], 'ai-hero.png', { type: blob.type });
+      const heroDef = SLOTS.find((s) => s.slot === 'hero')!;
+      await onUpload(heroDef, file);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '画像生成に失敗しました');
       setBusySlot(null);
     }
   };
@@ -202,6 +225,17 @@ export function Step4Visual({
                       e.target.value = '';
                     }}
                   />
+                  {def.slot === 'hero' && aiImageEnabled && (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={onGenerateHero}
+                      title="業種・デザイン・テーマカラーに合う背景をAIが生成します"
+                      className="rounded-md border border-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-900 hover:bg-neutral-900 hover:text-white disabled:opacity-50"
+                    >
+                      {busy ? '生成中…（10〜30秒）' : 'AIで生成'}
+                    </button>
+                  )}
                   <button
                     type="button"
                     disabled={busy}

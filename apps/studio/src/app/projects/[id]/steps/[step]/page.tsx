@@ -89,6 +89,7 @@ export default async function StepPage({
           projectId={project.id}
           initialVisuals={(full?.visuals ?? {}) as Record<string, string>}
           readOnly={project.status === 'generating'}
+          aiImageEnabled={!!process.env.GEMINI_API_KEY}
         />
       );
       break;
