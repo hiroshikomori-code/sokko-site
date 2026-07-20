@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Noto_Sans_JP, Noto_Serif_JP, Zen_Maru_Gothic } from 'next/font/google';
+import { Noto_Sans_JP } from 'next/font/google';
 import { JsonLd } from '@sokko/site-kit';
 import { loadSiteConfig } from '@/lib/config';
 import './globals.css';
@@ -10,19 +10,10 @@ const notoSansJp = Noto_Sans_JP({
   weight: ['400', '500', '700', '900'],
 });
 
-// 見出し用の明朝体（classic）。site-kitは --font-serif-jp 経由で参照する（tokens.ts）
-const notoSerifJp = Noto_Serif_JP({
-  subsets: ['latin'],
-  weight: ['600', '700'],
-  variable: '--font-serif-jp',
-});
-
-// 見出し用の丸ゴシック（warm）。--font-round-jp 経由で参照
-const zenMaruGothic = Zen_Maru_Gothic({
-  subsets: ['latin'],
-  weight: ['700'],
-  variable: '--font-round-jp',
-});
+// 見出しの明朝（classic）・丸ゴシック（warm)はWebフォントを使わず端末内蔵書体
+// （ヒラギノ明朝/游明朝等。tokens.tsのフォールバック連鎖で解決）。
+// 和文セリフのWebフォントはグリフ分割でも700KB級になり、モバイル品質ゲートを
+// 大きく悪化させることが実測で判明したため（Android等では自動的にゴシック代替）
 
 const config = loadSiteConfig();
 
@@ -40,11 +31,7 @@ export default function RootLayout({
       <head>
         <JsonLd config={config} />
       </head>
-      <body
-        className={`${notoSansJp.className} ${notoSerifJp.variable} ${zenMaruGothic.variable}`}
-      >
-        {children}
-      </body>
+      <body className={notoSansJp.className}>{children}</body>
     </html>
   );
 }

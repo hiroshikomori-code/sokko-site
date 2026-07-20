@@ -54,7 +54,7 @@ export function cssVariables(design: SiteConfig['design']): Record<string, strin
       '--sk-gold': `color-mix(in srgb, ${primary} 40%, #f2c078)`,
       '--sk-gold-text': `color-mix(in srgb, ${primary} 45%, #7a5a2e)`,
       '--sk-font-display':
-        "var(--font-round-jp, 'Hiragino Maru Gothic ProN'), 'Zen Maru Gothic', sans-serif",
+        "'Hiragino Maru Gothic ProN', 'Zen Maru Gothic', 'BIZ UDGothic', sans-serif",
       '--sk-display-weight': '700',
       '--sk-radius': '16px',
       '--sk-shadow-card': '0 2px 8px rgba(58,48,30,0.06)',
@@ -76,8 +76,9 @@ export function cssVariables(design: SiteConfig['design']): Record<string, strin
     '--sk-line': '#e7e2d7',
     '--sk-gold': '#bfa268',
     '--sk-gold-text': '#78633a',
+    // 端末内蔵の明朝を使う（和文セリフのWebフォントは700KB級で品質ゲートを壊すため不採用）
     '--sk-font-display':
-      "var(--font-serif-jp, 'Hiragino Mincho ProN'), 'Yu Mincho', 'Noto Serif JP', serif",
+      "'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', serif",
     '--sk-display-weight': '600',
     '--sk-radius': '2px',
     '--sk-shadow-card': '0 1px 2px rgba(28,25,20,0.04)',
