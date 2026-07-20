@@ -108,7 +108,8 @@ export function SiteShell({
               </ul>
             </nav>
           </div>
-          <p className="mt-12 text-xs text-white/50">© {b.officeName}</p>
+          {/* white/50はコントラスト4.49でWCAG AA(4.5)にわずかに届かない */}
+          <p className="mt-12 text-xs text-white/65">© {b.officeName}</p>
         </div>
       </footer>
     </div>
