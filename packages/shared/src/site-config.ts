@@ -51,6 +51,13 @@ export const sitePageSchema = z.object({
 });
 export type SitePage = z.infer<typeof sitePageSchema>;
 
+/** 画像の参照先: 絶対URL または ルート相対パス（CIのビルド同梱後は /media/...） */
+const imagePathSchema = z
+  .string()
+  .refine((v) => v.startsWith('/') || /^https?:\/\//.test(v), {
+    message: '画像は絶対URLまたは/始まりの相対パスで指定してください',
+  });
+
 export const siteConfigSchema = z.object({
   version: z.literal(1),
   meta: z.object({
@@ -84,12 +91,15 @@ export const siteConfigSchema = z.object({
     /** デザインバリアント（Step2で選択）。過去のsite_configはdefaultでclassic扱い */
     variant: z.enum(DESIGN_VARIANT_KEYS).default('classic'),
   }),
-  /** 画像スロット（公開URL）。未設定スロットは写真なしデザインに自動フォールバック */
+  /**
+   * 画像スロット。未設定スロットは写真なしデザインに自動フォールバック。
+   * 絶対URL（studioプレビュー時）と /media/ 相対パス（CIがビルド同梱に書き換えた後）の両方を許容
+   */
   images: z
     .object({
-      hero: z.string().url().optional(),
-      representative: z.string().url().optional(),
-      office: z.string().url().optional(),
+      hero: imagePathSchema.optional(),
+      representative: imagePathSchema.optional(),
+      office: imagePathSchema.optional(),
     })
     .optional(),
   cta: z.object({
