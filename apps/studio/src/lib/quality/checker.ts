@@ -110,7 +110,11 @@ export async function checkSite(
     }
 
     // 禁止表現（§13 広告規制ガードの最終機械チェック）
-    const bodyText = document.querySelector('body')?.textContent ?? '';
+    // CSSインライン化で<style>本文がHTMLに含まれるため、可視テキストだけを走査する
+    // （TailwindのCSS変数「--tw-…:100%」等を誤検知しないように）
+    const body = document.querySelector('body');
+    body?.querySelectorAll('style,script,noscript,template').forEach((el) => el.remove());
+    const bodyText = body?.textContent ?? '';
     for (const expression of PROHIBITED_EXPRESSIONS) {
       if (bodyText.includes(expression)) {
         findings.push({
@@ -133,8 +137,14 @@ export async function checkSite(
       if (seenLinks.has(linkUrl)) continue;
       seenLinks.add(linkUrl);
 
-      const linkRes = await fetchSafe(linkUrl, 'HEAD');
-      const broken = !linkRes || linkRes.status >= 400;
+      let linkRes = await fetchSafe(linkUrl, 'HEAD');
+      let broken = !linkRes || linkRes.status >= 400;
+      if (broken) {
+        // デプロイ直後はエッジ伝播前で404になることがある → 3秒待って1回だけ再確認
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        linkRes = await fetchSafe(linkUrl, 'HEAD');
+        broken = !linkRes || linkRes.status >= 400;
+      }
       if (broken) {
         findings.push({
           level: isInternal ? 'block' : 'warn',
