@@ -8,6 +8,30 @@ import { buildAndSaveSiteConfig } from '@/lib/site-config-builder';
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
+/**
+ * デプロイ完了の検知（Step6/7のローディング表示用）。
+ * GitHub Actionsが完了時に書き込む audit_log（deployed_preview / deployed_production）を
+ * クライアントが10秒間隔でポーリングし、完了したら自動で画面を更新する。
+ */
+export async function checkDeployCompleted(
+  projectId: string,
+  env: 'preview' | 'production',
+  sinceIso: string,
+): Promise<{ done: boolean }> {
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('audit_log')
+    .select('id')
+    .eq('project_id', projectId)
+    .eq('action', `deployed_${env}`)
+    .gt('created_at', sinceIso)
+    .limit(1);
+  return { done: (data?.length ?? 0) > 0 };
+}
+
 /** Step4/5の単純な前進（写真配置・AEO確認はMVPでは確認のみ） */
 export async function advanceStep(
   projectId: string,

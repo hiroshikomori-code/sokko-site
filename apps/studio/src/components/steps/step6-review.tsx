@@ -1,15 +1,67 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { PAGE_LABELS, type PageKey } from '@sokko/shared';
 import {
   approveProject,
+  checkDeployCompleted,
   deployPreview,
   rejectProject,
 } from '@/app/projects/[id]/steps/review-actions';
 import type { QualityResult } from '@/lib/quality/gate';
+
+/** デプロイ中などの進行表示用スピナー */
+export function Spinner({ light }: { light?: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`inline-block h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 ${
+        light
+          ? 'border-white/30 border-t-white'
+          : 'border-neutral-300 border-t-neutral-700'
+      }`}
+    />
+  );
+}
+
+/**
+ * デプロイ完了の自動検知フック。
+ * sinceIso がセットされている間、10秒ごとに完了を確認し、
+ * 完了したら onDone を呼ぶ（8分で諦めて onTimeout）。
+ */
+export function useDeployWatcher(
+  projectId: string,
+  env: 'preview' | 'production',
+  sinceIso: string | null,
+  onDone: () => void,
+  onTimeout: () => void,
+) {
+  useEffect(() => {
+    if (!sinceIso) return;
+    const startedAt = Date.now();
+    const timer = setInterval(async () => {
+      if (Date.now() - startedAt > 8 * 60 * 1000) {
+        clearInterval(timer);
+        onTimeout();
+        return;
+      }
+      try {
+        const { done } = await checkDeployCompleted(projectId, env, sinceIso);
+        if (done) {
+          clearInterval(timer);
+          onDone();
+        }
+      } catch {
+        // 一時的な通信失敗は次のポーリングで再試行
+      }
+    }, 10_000);
+    return () => clearInterval(timer);
+    // onDone/onTimeout は最新のstateを閉じ込めるため意図的に依存に含めない
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, env, sinceIso]);
+}
 
 type PageInfo = { page_key: string; needs_revision: boolean };
 
@@ -38,6 +90,38 @@ export function Step6Review({
   const [rejectOpen, setRejectOpen] = useState(false);
   const [rejectPages, setRejectPages] = useState<string[]>([]);
   const [rejectNote, setRejectNote] = useState('');
+
+  const [deployingSince, setDeployingSince] = useState<string | null>(null);
+
+  useDeployWatcher(
+    projectId,
+    'preview',
+    deployingSince,
+    () => {
+      setDeployingSince(null);
+      setMessage('プレビューのデプロイが完了しました。URLから確認できます');
+      router.refresh();
+    },
+    () => {
+      setDeployingSince(null);
+      setError(
+        'デプロイの完了を確認できませんでした。数分おいて再読み込みし、URLが出ていなければもう一度お試しください',
+      );
+    },
+  );
+
+  const onDeployPreview = () => {
+    startTransition(async () => {
+      setError(null);
+      setMessage(null);
+      const result = await deployPreview(projectId);
+      if (!result.ok) {
+        setError(result.error ?? 'エラーが発生しました');
+        return;
+      }
+      setDeployingSince(new Date().toISOString());
+    });
+  };
 
   const run = (fn: () => Promise<{ ok: boolean; error?: string } | never>) => {
     startTransition(async () => {
@@ -105,13 +189,25 @@ export function Step6Review({
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <button
             type="button"
-            onClick={() => run(() => deployPreview(projectId))}
-            disabled={pending}
+            onClick={onDeployPreview}
+            disabled={pending || !!deployingSince}
             className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
           >
-            プレビューをデプロイ
+            {deployingSince ? (
+              <span className="flex items-center gap-2">
+                <Spinner light />
+                デプロイ中…
+              </span>
+            ) : (
+              'プレビューをデプロイ'
+            )}
           </button>
-          {previewUrl ? (
+          {deployingSince ? (
+            <span className="flex items-center gap-2 text-xs text-neutral-600">
+              <Spinner />
+              サイトを組み立てて配信環境に反映しています（1〜3分）。完了すると自動でURLが表示されます
+            </span>
+          ) : previewUrl ? (
             <a
               href={previewUrl}
               target="_blank"
@@ -122,7 +218,7 @@ export function Step6Review({
             </a>
           ) : (
             <span className="text-xs text-neutral-500">
-              デプロイ完了までは数分かかります（完了すると再読み込みでURLが表示されます）
+              デプロイには数分かかります（進行状況はこの画面に表示されます）
             </span>
           )}
           <Link
