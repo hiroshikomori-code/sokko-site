@@ -1,13 +1,13 @@
 'use client';
 
-import { useRef, useState, useTransition } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
   generateHeroImageForProject,
   saveVisualSlot,
 } from '@/app/projects/[id]/steps/visual-actions';
-import { advanceStep } from '@/app/projects/[id]/steps/review-actions';
+import { AdvanceButton } from './advance-button';
 
 /**
  * Step4: ビジュアル配置（§9-4）。
@@ -92,9 +92,7 @@ export function Step4Visual({
   const [visuals, setVisuals] = useState(initialVisuals);
   const [busySlot, setBusySlot] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const advance = advanceStep.bind(null, projectId, 4 as const);
 
   const onUpload = async (def: SlotDef, file: File) => {
     setError(null);
@@ -261,16 +259,14 @@ export function Step4Visual({
         })}
       </ul>
 
-      <form action={advance} className="flex justify-end">
-        <button
-          type="submit"
-          disabled={pending || busySlot !== null}
-          onClick={() => startTransition(() => {})}
-          className="rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
-        >
-          次へ（AEO/GEO確認）
-        </button>
-      </form>
+      <div className="flex justify-end">
+        <AdvanceButton
+          projectId={projectId}
+          fromStep={4}
+          label="次へ（AEO/GEO確認）"
+          disabled={busySlot !== null}
+        />
+      </div>
     </div>
   );
 }

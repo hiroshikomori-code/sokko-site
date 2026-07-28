@@ -2,7 +2,7 @@ import {
   siteMetaContentSchema,
   type ProjectInputDraft,
 } from '@sokko/shared';
-import { advanceStep } from '@/app/projects/[id]/steps/review-actions';
+import { AdvanceButton } from './advance-button';
 
 /**
  * Step5: AEO/GEO自動最適化（§9-5）。
@@ -77,14 +77,13 @@ export function Step5Aeo({
         )}
       </dl>
 
-      <form action={advance} className="flex justify-end">
-        <button
-          type="submit"
-          className="rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white hover:bg-neutral-700"
-        >
-          次へ（プレビュー・承認）
-        </button>
-      </form>
+      <div className="flex justify-end">
+        <AdvanceButton
+          projectId={projectId}
+          fromStep={5}
+          label="次へ（プレビュー・承認）"
+        />
+      </div>
     </div>
   );
 }
