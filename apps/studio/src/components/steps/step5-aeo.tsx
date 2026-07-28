@@ -17,7 +17,6 @@ export function Step5Aeo({
   input: ProjectInputDraft;
   metaContent: unknown;
 }) {
-  const advance = advanceStep.bind(null, projectId, 5 as const);
   const meta = siteMetaContentSchema.safeParse(metaContent);
 
   const items: { label: string; body: string }[] = [
