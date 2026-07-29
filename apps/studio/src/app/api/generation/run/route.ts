@@ -81,7 +81,24 @@ export async function POST(request: NextRequest) {
       ? revisionRow.revision_note
       : null;
 
-    const result = await runGeneration(input, job.page_key, heartbeat, revisionNote);
+    // クライアント提供資料（Step1で登録）を事実情報の裏付けとして渡す
+    const { data: docRows } = await supabase
+      .from('project_documents')
+      .select('filename, extracted_text')
+      .eq('project_id', job.project_id)
+      .order('created_at', { ascending: true });
+    const docs = (docRows ?? []).map((d) => ({
+      filename: d.filename as string,
+      text: d.extracted_text as string,
+    }));
+
+    const result = await runGeneration(
+      input,
+      job.page_key,
+      heartbeat,
+      revisionNote,
+      docs,
+    );
 
     // pages upsert（バージョンを進め、差し戻しフラグを解除）
     const { data: existing } = await supabase

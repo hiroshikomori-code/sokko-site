@@ -15,6 +15,7 @@ import {
   pagePrompt,
   revisePrompt,
   workerSystemPrompt,
+  type ProvidedDoc,
 } from './prompts';
 import {
   CRITIQUE_FORMAT,
@@ -61,6 +62,8 @@ export async function runGeneration(
   onHeartbeat: () => Promise<void>,
   /** 差し戻しコメント（承認者の改稿指示）。あれば初稿プロンプトに織り込む（計画3.1章） */
   revisionNote?: string | null,
+  /** クライアント提供資料（Step1で登録。事実情報の裏付けとして初稿プロンプトに注入） */
+  docs?: ProvidedDoc[],
 ): Promise<GenerationResult> {
   const client = new Anthropic();
   const usage: TokenUsage = { inputTokens: 0, outputTokens: 0 };
@@ -72,8 +75,8 @@ export async function runGeneration(
     ? 'サイト全体メタ（llms.txt要約・FAQ）'
     : PAGE_LABELS[pageKey as PageKey];
   const basePrompt = isMeta
-    ? metaPrompt(input)
-    : pagePrompt(input, pageKey as Exclude<PageKey, 'news'>);
+    ? metaPrompt(input, docs)
+    : pagePrompt(input, pageKey as Exclude<PageKey, 'news'>, docs);
   const userPrompt = revisionNote?.trim()
     ? `${basePrompt}
 

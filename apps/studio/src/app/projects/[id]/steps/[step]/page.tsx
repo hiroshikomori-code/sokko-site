@@ -50,14 +50,21 @@ export default async function StepPage({
 
   let content: React.ReactNode;
   switch (step) {
-    case 1:
+    case 1: {
+      const { data: documents } = await supabase
+        .from('project_documents')
+        .select('id, filename, char_count, created_at')
+        .eq('project_id', project.id)
+        .order('created_at', { ascending: true });
       content = (
         <Step1Form
           projectId={project.id}
           initialInput={project.input}
           readOnly={!['draft', 'revising'].includes(project.status)}
+          initialDocuments={documents ?? []}
         />
       );
+    }
       break;
     case 2:
       content = (

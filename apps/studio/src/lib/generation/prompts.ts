@@ -13,6 +13,29 @@ import {
  * オペレーターに自由記述プロンプトは露出しない。
  */
 
+export type ProvidedDoc = { filename: string; text: string };
+
+/**
+ * クライアント提供資料のプロンプト節。
+ * 1資料8,000字・合計20,000字で打ち切り（コスト暴走の防止。Part VI）
+ */
+export function docsSection(docs?: ProvidedDoc[]): string {
+  if (!docs || docs.length === 0) return '';
+  let budget = 20_000;
+  const parts: string[] = [];
+  for (const d of docs) {
+    if (budget <= 0) break;
+    const slice = d.text.slice(0, Math.min(8_000, budget));
+    budget -= slice.length;
+    parts.push(`### 資料: ${d.filename}\n${slice}`);
+  }
+  return `
+
+## クライアント提供資料（抜粋）
+以下はお客様から提供された資料です。事実（料金・実績・サービス内容・沿革・営業情報など）は、ヒアリング入力と食い違う場合を除きこの資料を優先して使ってください。資料に無いことは創作しないこと。
+${parts.join('\n\n')}`;
+}
+
 export function workerSystemPrompt(input: ProjectInput): string {
   const preset = INDUSTRY_PRESETS[input.basics.industryType];
   // 汎用プリセットの場合はAI判定の業種ラベル（例: 学習塾）をそのまま役割に使う
@@ -33,7 +56,11 @@ export function workerSystemPrompt(input: ProjectInput): string {
 - 文章は日本語。専門用語には短い説明を添える（読者は経営者や一般の依頼者）。`;
 }
 
-export function pagePrompt(input: ProjectInput, pageKey: Exclude<PageKey, 'news'>): string {
+export function pagePrompt(
+  input: ProjectInput,
+  pageKey: Exclude<PageKey, 'news'>,
+  docs?: ProvidedDoc[],
+): string {
   const blueprint = PAGE_BLUEPRINTS[pageKey];
   return `以下の事業者情報をもとに、「${pageLabelFor(input.basics.industryType, pageKey)}」ページの文章を生成してください。
 
@@ -56,19 +83,19 @@ ${blueprint.sections.join(' → ')}
 - cta: heading=行動を促す短い見出し、body=一言（任意）
 
 ## 事業者情報（①ヒアリング入力）
-${JSON.stringify(input, null, 2)}
+${JSON.stringify(input, null, 2)}${docsSection(docs)}
 
 titleはSEOタイトル（「ページ内容｜事務所名」形式、35字以内）、descriptionはメタディスクリプション（80〜120字、検索語を自然に含める）。`;
 }
 
-export function metaPrompt(input: ProjectInput): string {
+export function metaPrompt(input: ProjectInput, docs?: ProvidedDoc[]): string {
   return `以下の事業者情報をもとに、サイト全体のメタ情報を生成してください。
 
 1. llmsSummary: AI回答エンジン（ChatGPT等）がこの事業者を引用・推薦しやすいサイト要約（2〜3文。何者で・どこで・何をするか・強みを明快に）。
 2. faq: 見込み客が実際に検索・質問しそうなFAQを4〜5件。answerは2〜3文で具体的に。料金・初回相談・対応エリア・依頼の流れなど。
 
 ## 事業者情報（①ヒアリング入力）
-${JSON.stringify(input, null, 2)}`;
+${JSON.stringify(input, null, 2)}${docsSection(docs)}`;
 }
 
 /** 司令塔（Fable 5）の自己批評観点（§11） */

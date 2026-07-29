@@ -127,7 +127,19 @@ const SYSTEM = `あなたはWebサイト制作会社のディレクターです�
 3. ふりがなは事業者名がメモにあれば生成してよい（ひらがな）
 4. 文体は簡潔に。メモの言い回しを活かしつつ、ヒアリングシートに収まる長さで`;
 
-export async function draftStep1(memo: string): Promise<Step1DraftSuggestion> {
+export async function draftStep1(
+  memo: string,
+  docs?: { filename: string; text: string }[],
+): Promise<Step1DraftSuggestion> {
+  const docsPart =
+    docs && docs.length > 0
+      ? `\n\n## クライアント提供資料（会社案内・料金表など）\n${docs
+          .map((d) => `### 資料: ${d.filename}\n${d.text.slice(0, 12_000)}`)
+          .join('\n\n')}`
+      : '';
+  const memoPart = memo.trim()
+    ? `\n\n## 打ち合わせメモ\n${memo}`
+    : '';
   const client = new Anthropic();
   const response = await client.messages.create({
     model: MODEL,
@@ -136,7 +148,7 @@ export async function draftStep1(memo: string): Promise<Step1DraftSuggestion> {
     messages: [
       {
         role: 'user',
-        content: `以下の打ち合わせメモから、ヒアリングシートの下書きを作成してください。\n\n## 打ち合わせメモ\n${memo}`,
+        content: `以下の情報から、ヒアリングシートの下書きを作成してください。メモと資料で食い違う事実があれば、より新しい・正式と思われる方（原則メモ）を優先してください。${memoPart}${docsPart}`,
       },
     ],
     output_config: { format: FORMAT },

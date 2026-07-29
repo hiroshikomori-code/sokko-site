@@ -39,6 +39,7 @@ export async function saveStep1Draft(
  * オペレーターが確認・修正してから確定する。
  */
 export async function draftStep1FromMemo(
+  projectId: string,
   memo: string,
 ): Promise<
   { ok: true; draft: Step1DraftSuggestion } | { ok: false; error: string }
@@ -51,15 +52,29 @@ export async function draftStep1FromMemo(
     .replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g, '')
     .trim()
     .slice(0, 12000);
-  if (normalized.length < 30) {
+
+  // 登録済みのクライアント資料も下書きの材料にする
+  const supabase = await createClient();
+  const { data: docRows } = await supabase
+    .from('project_documents')
+    .select('filename, extracted_text')
+    .eq('project_id', projectId)
+    .order('created_at', { ascending: true });
+  const docs = (docRows ?? []).map((d) => ({
+    filename: d.filename as string,
+    text: d.extracted_text as string,
+  }));
+
+  if (normalized.length < 30 && docs.length === 0) {
     return {
       ok: false,
-      error: 'メモが短すぎます。打ち合わせの内容をそのまま貼り付けてください',
+      error:
+        'メモを貼り付けるか、資料を登録してください（どちらかがあれば下書きを作れます）',
     };
   }
 
   try {
-    const draft = await draftStep1(normalized);
+    const draft = await draftStep1(normalized, docs);
     return { ok: true, draft };
   } catch (err) {
     console.error('draftStep1FromMemo failed:', err);

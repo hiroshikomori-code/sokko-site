@@ -14,6 +14,11 @@ import {
   saveStep1Draft,
   submitStep1,
 } from '@/app/projects/[id]/steps/actions';
+import {
+  deleteProjectDocument,
+  uploadProjectDocument,
+  type DocumentRow,
+} from '@/app/projects/[id]/steps/document-actions';
 import type { Step1DraftSuggestion } from '@/lib/step1-drafter';
 
 /** フォーム内部の値（未入力を許容し、確定時に共有スキーマで検証する） */
@@ -208,10 +213,12 @@ export function Step1Form({
   projectId,
   initialInput,
   readOnly,
+  initialDocuments,
 }: {
   projectId: string;
   initialInput: ProjectInputDraft;
   readOnly: boolean;
+  initialDocuments: DocumentRow[];
 }) {
   const form = useForm<FormValues>({ defaultValues: toDefaults(initialInput) });
   const { register, handleSubmit, setError, formState, getValues } = form;
@@ -219,6 +226,8 @@ export function Step1Form({
   const [notice, setNotice] = useState<string | null>(null);
   const [topError, setTopError] = useState<string | null>(null);
   const [memoText, setMemoText] = useState('');
+  const [documents, setDocuments] = useState<DocumentRow[]>(initialDocuments);
+  const [docBusy, setDocBusy] = useState(false);
 
   const err = (path: string): string | undefined => {
     const parts = path.split('.');
@@ -318,11 +327,38 @@ export function Step1Form({
     });
   };
 
+  /** 資料の登録（テキスト抽出はサーバー側。元ファイルは保存されない） */
+  const onUploadDocuments = async (files: FileList) => {
+    setTopError(null);
+    setDocBusy(true);
+    try {
+      for (const file of Array.from(files)) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const result = await uploadProjectDocument(projectId, formData);
+        if (!result.ok) {
+          setTopError(`${file.name}: ${result.error}`);
+          continue;
+        }
+        setDocuments((prev) => [...prev, result.document]);
+      }
+    } finally {
+      setDocBusy(false);
+    }
+  };
+
+  const onDeleteDocument = async (doc: DocumentRow) => {
+    if (!window.confirm(`資料「${doc.filename}」を削除しますか？`)) return;
+    const result = await deleteProjectDocument(projectId, doc.id);
+    if (!result.ok) setTopError(result.error);
+    else setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
+  };
+
   const onDraftFromMemo = () => {
     startTransition(async () => {
       setTopError(null);
       setNotice(null);
-      const result = await draftStep1FromMemo(memoText);
+      const result = await draftStep1FromMemo(projectId, memoText);
       if (!result.ok) {
         setTopError(result.error);
         return;
@@ -446,15 +482,63 @@ export function Step1Form({
             }
             className="mt-3 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
           />
-          <div className="mt-2 flex justify-end">
-            <button
-              type="button"
-              onClick={onDraftFromMemo}
-              disabled={pending || memoText.trim().length < 30}
-              className="rounded-md bg-neutral-900 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
-            >
-              {pending ? 'AIが下書きを作成中…（10〜20秒）' : 'AIで下書きを作成'}
-            </button>
+
+          {/* クライアント提供資料（Excel/PDF/Word等 → テキスト抽出して保存） */}
+          <div className="mt-3">
+            {documents.length > 0 && (
+              <ul className="divide-y divide-neutral-200 rounded-md border border-neutral-200 bg-white text-sm">
+                {documents.map((doc) => (
+                  <li key={doc.id} className="flex items-center gap-3 px-3 py-2">
+                    <span aria-hidden>📄</span>
+                    <span className="min-w-0 flex-1 truncate">{doc.filename}</span>
+                    <span className="shrink-0 text-xs text-neutral-400">
+                      {doc.char_count.toLocaleString()}字
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteDocument(doc)}
+                      disabled={docBusy || pending}
+                      className="shrink-0 text-xs text-red-600 hover:underline disabled:opacity-50"
+                    >
+                      削除
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+              <label
+                className={`cursor-pointer rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 ${docBusy || pending ? 'pointer-events-none opacity-50' : ''}`}
+              >
+                {docBusy ? '資料を読み取り中…' : '＋ 資料を追加（Excel / Word / PDF / CSV）'}
+                <input
+                  type="file"
+                  multiple
+                  accept=".xlsx,.xls,.docx,.pdf,.txt,.csv,.md"
+                  className="hidden"
+                  disabled={docBusy || pending}
+                  onChange={(e) => {
+                    if (e.target.files?.length) onUploadDocuments(e.target.files);
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={onDraftFromMemo}
+                disabled={
+                  pending ||
+                  docBusy ||
+                  (memoText.trim().length < 30 && documents.length === 0)
+                }
+                className="rounded-md bg-neutral-900 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+              >
+                {pending ? 'AIが下書きを作成中…（10〜20秒）' : 'AIで下書きを作成'}
+              </button>
+            </div>
+            <p className="mt-1.5 text-xs text-neutral-400">
+              資料は文字情報だけを読み取って保存します（元ファイルは保存されません）。登録した資料はStep3の文章生成でも「事実の裏付け」として使われます。
+            </p>
           </div>
         </section>
       )}
