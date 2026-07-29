@@ -4,7 +4,10 @@ import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
-import { deployProduction } from '@/app/projects/[id]/steps/review-actions';
+import {
+  deployProduction,
+  unpublishSite,
+} from '@/app/projects/[id]/steps/review-actions';
 import { Spinner, useDeployWatcher } from './step6-review';
 
 export function Step7Publish({
@@ -12,11 +15,13 @@ export function Step7Publish({
   status,
   approvedAt,
   deployUrl,
+  role,
 }: {
   projectId: string;
   status: string;
   approvedAt: string | null;
   deployUrl: string | null;
+  role: 'operator' | 'approver';
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -51,6 +56,25 @@ export function Step7Publish({
     });
   };
   const requested = !!deployingSince;
+
+  const onUnpublish = () => {
+    const ok = window.confirm(
+      'サイトを非公開にします。\n公開URLは表示されなくなります（お客様のサイトが見られなくなります）。\n再公開はこの画面の「サイトを公開する」からいつでもできます。\nよろしいですか？',
+    );
+    if (!ok) return;
+    startTransition(async () => {
+      setError(null);
+      setNotice(null);
+      const result = await unpublishSite(projectId);
+      if (!result.ok) setError(result.error);
+      else {
+        setNotice(
+          'サイトを非公開にしました。再公開は「サイトを公開する」からできます',
+        );
+        router.refresh();
+      }
+    });
+  };
 
   const published = status === 'published' && !!deployUrl;
 
@@ -104,6 +128,16 @@ export function Step7Publish({
             <p className="mt-3 text-xs text-neutral-500">
               文言編集・写真差し替え・独自ドメイン設定の反映は「変更を再公開する」で行います
             </p>
+            {role === 'approver' && (
+              <button
+                type="button"
+                onClick={onUnpublish}
+                disabled={pending || requested}
+                className="mt-5 text-xs text-red-600 underline-offset-2 hover:underline disabled:opacity-50"
+              >
+                サイトを非公開にする（配信停止）
+              </button>
+            )}
           </>
         ) : (
           <>

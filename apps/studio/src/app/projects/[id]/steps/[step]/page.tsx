@@ -170,6 +170,7 @@ export default async function StepPage({
           status={project.status}
           approvedAt={full?.approved_at ?? null}
           deployUrl={project.deploy_url}
+          role={user.role}
         />
       );
       break;

@@ -9,6 +9,66 @@ import { buildAndSaveSiteConfig } from '@/lib/site-config-builder';
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
 /**
+ * サイトの非公開化（Step7・承認者のみ）。
+ * Cloudflare Workerを削除して配信を止める。承認記録は残るため、
+ * 再公開は「サイトを公開する」を押すだけ（同じURLで復活する）。
+ */
+export async function unpublishSite(projectId: string): Promise<ActionResult> {
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+  if (user.role !== 'approver') {
+    return { ok: false, error: 'サイトの非公開化は承認者のみ実行できます' };
+  }
+
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from('projects')
+    .select('slug, status')
+    .eq('id', projectId)
+    .single();
+  if (!project?.slug) return { ok: false, error: '案件が見つかりません' };
+  if (project.status !== 'published') {
+    return { ok: false, error: '公開中のサイトではありません' };
+  }
+
+  const token = process.env.CLOUDFLARE_API_TOKEN;
+  const account = process.env.CLOUDFLARE_ACCOUNT_ID;
+  if (!token || !account) {
+    return {
+      ok: false,
+      error: '配信設定が未構成です（システム管理者にご相談ください）',
+    };
+  }
+
+  const res = await fetch(
+    `https://api.cloudflare.com/client/v4/accounts/${account}/workers/scripts/site-${project.slug}`,
+    { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } },
+  );
+  const body = (await res.json().catch(() => null)) as {
+    success?: boolean;
+  } | null;
+  if (!res.ok || !body?.success) {
+    console.error('unpublishSite failed:', res.status, body);
+    return {
+      ok: false,
+      error: '配信の停止に失敗しました。時間をおいてもう一度お試しください',
+    };
+  }
+
+  await supabase
+    .from('projects')
+    .update({ status: 'review', deploy_url: null })
+    .eq('id', projectId);
+  await supabase.from('audit_log').insert({
+    actor_id: user.id,
+    project_id: projectId,
+    action: 'site_unpublished',
+    detail: { slug: project.slug },
+  });
+  return { ok: true };
+}
+
+/**
  * デプロイ完了の検知（Step6/7のローディング表示用）。
  * GitHub Actionsが完了時に書き込む audit_log（deployed_preview / deployed_production）を
  * クライアントが10秒間隔でポーリングし、完了したら自動で画面を更新する。
