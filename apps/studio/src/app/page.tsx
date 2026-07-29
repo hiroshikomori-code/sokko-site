@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
 import { logout } from '@/app/login/actions';
+import { DeleteProjectButton } from '@/components/delete-project-button';
 
 const STATUS_LABELS: Record<string, string> = {
   draft: '下書き',
@@ -79,10 +80,15 @@ export default async function HomePage() {
             </Link>
             <Link
               href={`/projects/${p.id}/announcements`}
-              className="mr-4 shrink-0 rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100"
+              className="mr-2 shrink-0 rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100"
             >
               お知らせ管理
             </Link>
+            {p.status !== 'published' ? (
+              <DeleteProjectButton projectId={p.id} name={p.name} />
+            ) : (
+              <span className="mr-4 w-10 shrink-0" aria-hidden />
+            )}
           </li>
         ))}
         {(projects ?? []).length === 0 && (
