@@ -12,7 +12,7 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-neutral-50">
       <div className="w-full max-w-sm rounded-xl border border-neutral-200 bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-bold text-neutral-900">ソッコーサイト</h1>
+        <h1 className="text-xl font-bold text-neutral-900">AIホームページ制作ツール</h1>
         <p className="mt-1 text-sm text-neutral-500">
           社内アカウントでログインしてください
         </p>

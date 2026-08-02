@@ -5,7 +5,7 @@ import './globals.css';
 // （tokens.tsのフォールバック連鎖で解決。Webフォント明朝は重量過多のため不採用）
 
 export const metadata: Metadata = {
-  title: 'ソッコーサイト',
+  title: 'AIホームページ制作ツール',
   description: 'カミノバ 多業種向けAIサイト制作アプリ',
 };
 
