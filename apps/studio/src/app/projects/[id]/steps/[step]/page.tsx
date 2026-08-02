@@ -193,28 +193,39 @@ export default async function StepPage({
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-8">
-      <div className="flex items-center justify-between">
-        <Link href="/" className="text-sm text-neutral-500 hover:text-neutral-900">
-          ← 案件一覧
-        </Link>
-        <p className="text-sm font-medium text-neutral-700">{project.name}</p>
-      </div>
+    <>
+      <header className="sticky top-0 z-10 border-b border-neutral-200/80 bg-white/90 backdrop-blur">
+        <div className="mx-auto w-full max-w-3xl px-6 pt-3">
+          <div className="flex items-center justify-between">
+            <Link
+              href="/"
+              className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-900"
+            >
+              ← 案件一覧
+            </Link>
+            <p className="truncate pl-4 text-sm font-semibold text-neutral-800">
+              {project.name}
+            </p>
+          </div>
+          <div className="mt-2">
+            <Stepper
+              projectId={project.id}
+              currentStep={maxReachableStep(project)}
+              activeStep={step}
+            />
+          </div>
+        </div>
+      </header>
 
-      <div className="mt-4">
-        <Stepper
-          projectId={project.id}
-          currentStep={maxReachableStep(project)}
-          activeStep={step}
-        />
-      </div>
+      <main className="mx-auto w-full max-w-3xl px-6 py-8">
+        <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
+          <span className="mr-2 text-indigo-600">{step}.</span>
+          {meta.title}
+        </h1>
+        <p className="mt-1.5 text-sm text-neutral-500">{meta.description}</p>
 
-      <h1 className="mt-8 text-xl font-bold text-neutral-900">
-        {step}. {meta.title}
-      </h1>
-      <p className="mt-1 text-sm text-neutral-500">{meta.description}</p>
-
-      <div className="mt-6">{content}</div>
-    </main>
+        <div className="mt-6">{content}</div>
+      </main>
+    </>
   );
 }

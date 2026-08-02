@@ -52,7 +52,7 @@ export function AdvanceButton({
         type="button"
         onClick={onClick}
         disabled={disabled || pending}
-        className="rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+        className="btn-primary"
       >
         {pending ? '処理中…' : label}
       </button>

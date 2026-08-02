@@ -10,9 +10,17 @@ export default function LoginPage() {
   );
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-50">
-      <div className="w-full max-w-sm rounded-xl border border-neutral-200 bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-bold text-neutral-900">AIホームページ制作ツール</h1>
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-indigo-50 via-[#f5f6f8] to-[#f5f6f8] px-6">
+      <div className="card w-full max-w-sm p-8">
+        <span
+          aria-hidden
+          className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-base font-black text-white"
+        >
+          AI
+        </span>
+        <h1 className="mt-4 text-xl font-bold tracking-tight text-neutral-900">
+          AIホームページ制作ツール
+        </h1>
         <p className="mt-1 text-sm text-neutral-500">
           社内アカウントでログインしてください
         </p>
@@ -31,7 +39,7 @@ export default function LoginPage() {
               type="email"
               autoComplete="email"
               required
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
+              className="mt-1 w-full input"
             />
           </div>
           <div>
@@ -47,7 +55,7 @@ export default function LoginPage() {
               type="password"
               autoComplete="current-password"
               required
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
+              className="mt-1 w-full input"
             />
           </div>
 
@@ -60,7 +68,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={pending}
-            className="w-full rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+            className="w-full btn-primary"
           >
             {pending ? 'ログイン中…' : 'ログイン'}
           </button>

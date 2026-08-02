@@ -50,7 +50,7 @@ export function Step5Aeo({
         </p>
       </div>
 
-      <dl className="divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
+      <dl className="card divide-y divide-neutral-200">
         {items.map((item) => (
           <div key={item.label} className="px-5 py-4">
             <dt className="text-xs font-medium text-neutral-500">{item.label}</dt>

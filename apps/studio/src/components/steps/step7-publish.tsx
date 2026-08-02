@@ -89,7 +89,7 @@ export function Step7Publish({
         </p>
       )}
 
-      <div className="rounded-xl border border-neutral-200 bg-white p-8 text-center">
+      <div className="card p-8 text-center">
         {published ? (
           <>
             <p className="text-2xl">🎉</p>
@@ -107,7 +107,7 @@ export function Step7Publish({
                 type="button"
                 onClick={onDeploy}
                 disabled={pending || requested}
-                className="rounded-md border border-neutral-300 px-5 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+                className="btn-secondary"
               >
                 {requested ? (
                   <span className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export function Step7Publish({
               </button>
               <Link
                 href={`/projects/${projectId}/steps/8`}
-                className="rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white hover:bg-neutral-700"
+                className="btn-primary"
               >
                 納品情報へ
               </Link>
@@ -151,7 +151,7 @@ export function Step7Publish({
               type="button"
               onClick={onDeploy}
               disabled={pending || !approvedAt || requested}
-              className="mt-6 rounded-md bg-neutral-900 px-8 py-3 text-sm font-bold text-white hover:bg-neutral-700 disabled:opacity-40"
+              className="mt-6 btn-primary"
             >
               {requested ? (
                 <span className="flex items-center gap-2">

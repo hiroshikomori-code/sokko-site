@@ -37,7 +37,7 @@ export default function NewProjectPage() {
             type="text"
             required
             maxLength={100}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
+            className="mt-1 w-full input"
           />
         </div>
 
@@ -50,7 +50,7 @@ export default function NewProjectPage() {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+          className="btn-primary"
         >
           {pending ? '作成中…' : '作成してヒアリング入力へ'}
         </button>

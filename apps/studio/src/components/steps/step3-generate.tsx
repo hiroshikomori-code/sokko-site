@@ -145,7 +145,7 @@ export function Step3Generate({
       )}
 
       {jobs.length === 0 ? (
-        <div className="rounded-xl border border-neutral-200 bg-white px-6 py-12 text-center">
+        <div className="card px-6 py-12 text-center">
           <p className="text-sm text-neutral-600">
             ヒアリング内容をもとに、AIが全ページの文章を作成します。
             <br />
@@ -155,14 +155,14 @@ export function Step3Generate({
             type="button"
             onClick={onStart}
             disabled={pending}
-            className="mt-6 rounded-md bg-neutral-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+            className="mt-6 btn-primary"
           >
             {pending ? '準備中…' : 'コンテンツ生成を開始'}
           </button>
         </div>
       ) : (
         <>
-          <ul className="divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
+          <ul className="card divide-y divide-neutral-200">
             {jobs.map((job) => {
               const stale = isStale(job);
               return (
@@ -208,7 +208,7 @@ export function Step3Generate({
                           type="button"
                           onClick={() => onRetry(job.id)}
                           disabled={pending}
-                          className="rounded-md border border-neutral-300 px-3 py-1 text-xs text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+                          className="btn-secondary"
                         >
                           再実行
                         </button>
@@ -240,7 +240,7 @@ export function Step3Generate({
                   type="button"
                   onClick={onComplete}
                   disabled={pending}
-                  className="rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+                  className="btn-primary"
                 >
                   次へ（ビジュアル配置）
                 </button>
@@ -250,7 +250,7 @@ export function Step3Generate({
                 type="button"
                 onClick={onStart}
                 disabled={pending}
-                className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+                className="btn-secondary"
               >
                 続きを生成
               </button>

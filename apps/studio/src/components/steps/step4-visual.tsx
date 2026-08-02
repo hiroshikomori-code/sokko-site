@@ -184,7 +184,7 @@ export function Step4Visual({
         あるものだけアップロードしてください。
       </p>
 
-      <ul className="divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
+      <ul className="card divide-y divide-neutral-200">
         {SLOTS.map((def) => {
           const path = visuals[def.slot];
           const busy = busySlot === def.slot;
@@ -229,7 +229,7 @@ export function Step4Visual({
                       disabled={busy}
                       onClick={onGenerateHero}
                       title="業種・デザイン・テーマカラーに合う背景をAIが生成します"
-                      className="rounded-md border border-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-900 hover:bg-neutral-900 hover:text-white disabled:opacity-50"
+                      className="rounded-lg border border-indigo-600 px-3 py-1.5 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-600 hover:text-white disabled:opacity-50"
                     >
                       {busy ? '生成中…（10〜30秒）' : 'AIで生成'}
                     </button>
@@ -238,7 +238,7 @@ export function Step4Visual({
                     type="button"
                     disabled={busy}
                     onClick={() => inputRefs.current[def.slot]?.click()}
-                    className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+                    className="btn-secondary"
                   >
                     {busy ? '処理中…' : path ? '差し替え' : 'アップロード'}
                   </button>
@@ -247,7 +247,7 @@ export function Step4Visual({
                       type="button"
                       disabled={busy}
                       onClick={() => onRemove(def.slot)}
-                      className="rounded-md px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                      className="btn-ghost-danger"
                     >
                       削除
                     </button>

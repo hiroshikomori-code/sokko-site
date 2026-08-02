@@ -389,8 +389,7 @@ export function Step1Form({
     });
   });
 
-  const inputCls =
-    'mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none disabled:bg-neutral-100';
+  const inputCls = 'mt-1.5 input';
 
   const Field = ({
     label,
@@ -409,16 +408,20 @@ export function Step1Form({
     children: React.ReactNode;
   }) => (
     <div>
-      <label className="block text-sm font-medium text-neutral-700">
+      <label className="block text-sm font-semibold text-neutral-800">
         {label}
-        {required && <span className="ml-1 text-red-500">必須</span>}
+        {required && (
+          <span className="ml-1.5 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-600">
+            必須
+          </span>
+        )}
         {fuel && (
-          <span className="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+          <span className="ml-1.5 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
             ★ 仕上がりを決める項目
           </span>
         )}
       </label>
-      {hint && <p className="mt-0.5 text-xs text-neutral-500">{hint}</p>}
+      {hint && <p className="mt-1 text-xs leading-relaxed text-neutral-500">{hint}</p>}
       {children}
       {path && err(path) && (
         <p role="alert" className="mt-1 text-xs text-red-600">
@@ -437,12 +440,14 @@ export function Step1Form({
     title: string;
     children: React.ReactNode;
   }) => (
-    <section className="rounded-xl border border-neutral-200 bg-white p-6">
-      <h3 className="text-sm font-bold text-neutral-900">
-        <span className="mr-2 text-neutral-400">{code}</span>
+    <section className="card p-6 sm:p-7">
+      <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-neutral-900">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-xs font-bold text-indigo-600">
+          {code}
+        </span>
         {title}
       </h3>
-      <div className="mt-4 space-y-4">{children}</div>
+      <div className="mt-5 space-y-5">{children}</div>
     </section>
   );
 
@@ -462,10 +467,10 @@ export function Step1Form({
       )}
 
       {!readOnly && (
-        <section className="rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50 p-6">
-          <h3 className="text-sm font-bold text-neutral-900">
+        <section className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-6">
+          <h3 className="text-[15px] font-bold text-neutral-900">
             打ち合わせメモから自動入力
-            <span className="ml-2 rounded bg-neutral-900 px-1.5 py-0.5 text-[10px] font-bold text-white">
+            <span className="ml-2 rounded-md bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
               AI
             </span>
           </h3>
@@ -480,7 +485,7 @@ export function Step1Form({
             placeholder={
               '例:\n山田さん（山田製作所・金属加工）と打ち合わせ。堺市の町工場、従業員8名。試作の速さが売りで…'
             }
-            className="mt-3 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
+            className="mt-3 w-full input"
           />
 
           {/* クライアント提供資料（Excel/PDF/Word等 → テキスト抽出して保存） */}
@@ -508,7 +513,7 @@ export function Step1Form({
             )}
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
               <label
-                className={`cursor-pointer rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 ${docBusy || pending ? 'pointer-events-none opacity-50' : ''}`}
+                className={`btn-secondary cursor-pointer ${docBusy || pending ? 'pointer-events-none opacity-50' : ''}`}
               >
                 {docBusy ? '資料を読み取り中…' : '＋ 資料を追加（Excel / Word / PDF / CSV）'}
                 <input
@@ -531,7 +536,7 @@ export function Step1Form({
                   docBusy ||
                   (memoText.trim().length < 30 && documents.length === 0)
                 }
-                className="rounded-md bg-neutral-900 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+                className="btn-primary"
               >
                 {pending ? 'AIが下書きを作成中…（10〜20秒）' : 'AIで下書きを作成'}
               </button>
@@ -900,14 +905,14 @@ export function Step1Form({
             type="button"
             onClick={onSaveDraft}
             disabled={pending}
-            className="rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+            className="btn-secondary"
           >
             下書き保存
           </button>
           <button
             type="submit"
             disabled={pending}
-            className="rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+            className="btn-primary"
           >
             {pending ? '保存中…' : '確定して次へ（テンプレ選択）'}
           </button>

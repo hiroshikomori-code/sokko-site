@@ -16,7 +16,7 @@ export function Step8Delivery({
 }) {
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-neutral-200 bg-white p-6">
+      <section className="card p-6">
         <h3 className="text-sm font-bold text-neutral-900">公開URL</h3>
         {deployUrl ? (
           <a
@@ -47,7 +47,7 @@ export function Step8Delivery({
 
       <DomainSettings projectId={projectId} currentDomain={customDomain} />
 
-      <section className="rounded-xl border border-neutral-200 bg-white p-6">
+      <section className="card p-6">
         <h3 className="text-sm font-bold text-neutral-900">お客様への納品案内（そのまま送れる文面）</h3>
         <div className="mt-3 whitespace-pre-line rounded-md bg-neutral-50 p-4 text-sm leading-relaxed text-neutral-700">
           {`${input.basics?.officeName ?? ''} さま
@@ -65,7 +65,7 @@ URL: ${deployUrl ?? '（公開後に記載）'}
         </div>
       </section>
 
-      <section className="rounded-xl border border-neutral-200 bg-white p-6">
+      <section className="card p-6">
         <h3 className="text-sm font-bold text-neutral-900">運用メモ（社内向け）</h3>
         <p className="mt-2 text-sm text-neutral-600">
           お知らせの代理投稿・非公開化は{' '}

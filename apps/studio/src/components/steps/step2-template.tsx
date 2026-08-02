@@ -95,7 +95,7 @@ export async function Step2Template({
         <h3 className="text-sm font-semibold text-neutral-900">
           業種（AIがヒアリング内容から判定）
         </h3>
-        <div className="rounded-xl border border-neutral-200 bg-white p-6">
+        <div className="card p-6">
           <p className="text-sm text-neutral-900">
             判定結果:{' '}
             <span className="font-bold">{detectedLabel}</span>
@@ -111,7 +111,7 @@ export async function Step2Template({
                 type="text"
                 defaultValue={detectedLabel}
                 maxLength={40}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none"
+                className="mt-1 w-full input"
               />
             </label>
             <label className="block text-xs text-neutral-600">
@@ -119,7 +119,7 @@ export async function Step2Template({
               <select
                 name="industryPreset"
                 defaultValue={detectedPreset}
-                className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none"
+                className="mt-1 w-full input"
               >
                 {Object.entries(INDUSTRY_TYPES).map(([k, v]) => (
                   <option key={k} value={k}>
@@ -140,7 +140,7 @@ export async function Step2Template({
         {(templates ?? []).map((t) => (
           <label
             key={t.id}
-            className="flex cursor-pointer items-center justify-between rounded-xl border border-neutral-200 bg-white p-6 has-[:checked]:border-neutral-900 has-[:checked]:ring-1 has-[:checked]:ring-neutral-900"
+            className="card flex cursor-pointer items-center justify-between p-6 transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500/20"
           >
             <div className="flex items-center gap-4">
               <input
@@ -177,7 +177,7 @@ export async function Step2Template({
           {DESIGN_VARIANT_KEYS.map((key) => (
             <label
               key={key}
-              className="cursor-pointer rounded-xl border border-neutral-200 bg-white p-4 has-[:checked]:border-neutral-900 has-[:checked]:ring-1 has-[:checked]:ring-neutral-900"
+              className="card cursor-pointer p-4 transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500/20"
             >
               <VariantThumb variant={key} mainColor={mainColor} />
               <div className="mt-3 flex items-start gap-2.5">
@@ -213,7 +213,7 @@ export async function Step2Template({
       <div className="flex justify-end">
         <button
           type="submit"
-          className="rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white hover:bg-neutral-700"
+          className="btn-primary"
         >
           このデザインで次へ（コンテンツ生成）
         </button>

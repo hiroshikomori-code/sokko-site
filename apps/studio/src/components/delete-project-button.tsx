@@ -32,7 +32,7 @@ export function DeleteProjectButton({
       type="button"
       onClick={onDelete}
       disabled={pending}
-      className="mr-4 shrink-0 rounded-md px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+      className="shrink-0 btn-ghost-danger"
     >
       {pending ? '削除中…' : '削除'}
     </button>

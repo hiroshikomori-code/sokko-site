@@ -100,7 +100,7 @@ export function AnnouncementsManager({
         </p>
       )}
 
-      <form ref={formRef} action={onPost} className="rounded-xl border border-neutral-200 bg-white p-5">
+      <form ref={formRef} action={onPost} className="card p-5">
         <label htmlFor="body" className="text-sm font-medium text-neutral-900">
           新しいお知らせ
         </label>
@@ -116,7 +116,7 @@ export function AnnouncementsManager({
             setPolished(false);
           }}
           placeholder="例: 明日は台風のため臨時休業（メモ書きでOK。「AIで校正」が訪問者向けの文面に清書します）"
-          className="mt-2 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
+          className="mt-2 w-full input"
         />
         <div className="mt-3 flex items-center justify-between gap-3">
           <p className="text-xs text-neutral-500">
@@ -127,14 +127,14 @@ export function AnnouncementsManager({
               type="button"
               disabled={pending || !draft.trim() || polished}
               onClick={onPolish}
-              className="rounded-md border border-neutral-300 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+              className="btn-secondary"
             >
               {pending ? '処理中…' : polished ? '校正済み' : 'AIで校正'}
             </button>
             <button
               type="submit"
               disabled={pending}
-              className="rounded-md bg-neutral-900 px-5 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+              className="btn-primary"
             >
               {pending ? '投稿中…' : '投稿する'}
             </button>
@@ -142,7 +142,7 @@ export function AnnouncementsManager({
         </div>
       </form>
 
-      <ul className="divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
+      <ul className="card divide-y divide-neutral-200">
         {announcements.map((a) => (
           <li key={a.id} className="flex items-start gap-3 px-5 py-4">
             <div className="min-w-0 flex-1">
@@ -153,14 +153,14 @@ export function AnnouncementsManager({
                     maxLength={500}
                     value={editBody}
                     onChange={(e) => setEditBody(e.target.value)}
-                    className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
+                    className="w-full input"
                   />
                   <div className="mt-2 flex gap-2">
                     <button
                       type="button"
                       disabled={pending}
                       onClick={() => onSaveEdit(a.id)}
-                      className="rounded-md bg-neutral-900 px-4 py-1.5 text-xs font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+                      className="btn-primary"
                     >
                       保存
                     </button>
@@ -168,7 +168,7 @@ export function AnnouncementsManager({
                       type="button"
                       disabled={pending}
                       onClick={() => setEditingId(null)}
-                      className="rounded-md border border-neutral-300 px-4 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100 disabled:opacity-50"
+                      className="btn-secondary"
                     >
                       キャンセル
                     </button>
@@ -210,7 +210,7 @@ export function AnnouncementsManager({
                     setEditingId(a.id);
                     setEditBody(a.body);
                   }}
-                  className="rounded-md border border-neutral-300 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-100 disabled:opacity-50"
+                  className="btn-secondary"
                 >
                   編集
                 </button>
@@ -218,9 +218,9 @@ export function AnnouncementsManager({
                   type="button"
                   disabled={pending}
                   onClick={() => onToggle(a.id, !a.published)}
-                  className={`rounded-md border px-3 py-1.5 text-xs disabled:opacity-50 ${
+                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition disabled:opacity-50 ${
                     a.published
-                      ? 'border-neutral-300 text-neutral-600 hover:bg-neutral-100'
+                      ? 'border-neutral-300 text-neutral-600 hover:bg-neutral-50'
                       : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50'
                   }`}
                 >

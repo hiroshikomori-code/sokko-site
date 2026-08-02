@@ -34,7 +34,7 @@ export function DomainSettings({
   };
 
   return (
-    <section className="rounded-xl border border-neutral-200 bg-white p-6">
+    <section className="card p-6">
       <h3 className="text-sm font-bold text-neutral-900">独自ドメイン</h3>
 
       {(error || notice) && (
@@ -52,12 +52,12 @@ export function DomainSettings({
           type="text"
           defaultValue={currentDomain ?? ''}
           placeholder="例: suzuki-sr.jp"
-          className="w-72 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none"
+          className="w-72 input"
         />
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+          className="btn-primary"
         >
           {pending ? '保存中…' : '保存'}
         </button>

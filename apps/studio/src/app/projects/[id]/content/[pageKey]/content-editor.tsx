@@ -20,8 +20,7 @@ const SECTION_LABELS: Record<string, string> = {
   cta: '行動喚起（CTA）',
 };
 
-const inputCls =
-  'mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-900 focus:outline-none';
+const inputCls = 'mt-1 input';
 
 export function ContentEditor({
   projectId,
@@ -134,7 +133,7 @@ export function ContentEditor({
           type="button"
           onClick={onSave}
           disabled={pending}
-          className="rounded-md bg-neutral-900 px-6 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+          className="btn-primary"
         >
           {pending ? '保存中…' : '保存する'}
         </button>
@@ -156,7 +155,7 @@ function PageForm({
 }) {
   return (
     <>
-      <section className="rounded-xl border border-neutral-200 bg-white p-5">
+      <section className="card p-5">
         <h3 className="text-sm font-bold text-neutral-900">検索結果での見え方（SEO）</h3>
         <label className="mt-3 block text-xs font-medium text-neutral-600">
           ページタイトル
@@ -178,7 +177,7 @@ function PageForm({
       </section>
 
       {page.sections.map((section, i) => (
-        <section key={i} className="rounded-xl border border-neutral-200 bg-white p-5">
+        <section key={i} className="card p-5">
           <h3 className="text-sm font-bold text-neutral-900">
             {SECTION_LABELS[section.type] ?? section.type}
           </h3>
@@ -265,7 +264,7 @@ function MetaForm({
 }) {
   return (
     <>
-      <section className="rounded-xl border border-neutral-200 bg-white p-5">
+      <section className="card p-5">
         <h3 className="text-sm font-bold text-neutral-900">
           AI向けサイト要約（llms.txt）
         </h3>
@@ -277,7 +276,7 @@ function MetaForm({
         />
       </section>
       {meta.faq.map((f, i) => (
-        <section key={i} className="rounded-xl border border-neutral-200 bg-white p-5">
+        <section key={i} className="card p-5">
           <h3 className="text-sm font-bold text-neutral-900">FAQ {i + 1}</h3>
           <label className="mt-3 block text-xs font-medium text-neutral-600">
             質問

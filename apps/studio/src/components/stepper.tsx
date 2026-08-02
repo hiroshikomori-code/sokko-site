@@ -23,44 +23,60 @@ export function Stepper({
   activeStep: number;
 }) {
   return (
-    <nav aria-label="制作ステップ" className="overflow-x-auto">
-      <ol className="flex min-w-max items-center gap-1 text-xs">
+    <nav aria-label="制作ステップ" className="overflow-x-auto pb-1">
+      <ol className="flex min-w-max items-center">
         {STEPS.map((label, i) => {
           const step = i + 1;
           const reachable = step <= currentStep;
+          const done = step < currentStep;
           const isActive = step === activeStep;
-          const base = 'flex items-center gap-1.5 rounded-full px-3 py-1.5';
-          const style = isActive
-            ? 'bg-neutral-900 text-white font-medium'
+
+          const pill = isActive
+            ? 'bg-indigo-600 text-white shadow-sm'
             : reachable
-              ? 'bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-100'
-              : 'bg-neutral-100 text-neutral-400';
+              ? 'text-neutral-700 hover:bg-indigo-50'
+              : 'text-neutral-400';
+          const circle = isActive
+            ? 'bg-white/25 text-white'
+            : done
+              ? 'bg-indigo-100 text-indigo-700'
+              : reachable
+                ? 'bg-white text-neutral-600 ring-1 ring-neutral-300'
+                : 'bg-neutral-100 text-neutral-400';
 
           const content = (
             <>
               <span
-                className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${
-                  isActive ? 'bg-white text-neutral-900' : 'bg-neutral-200 text-neutral-600'
-                }`}
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${circle}`}
               >
-                {step}
+                {done ? '✓' : step}
               </span>
-              {label}
+              <span className="text-xs font-medium whitespace-nowrap">{label}</span>
             </>
           );
 
           return (
-            <li key={label}>
+            <li key={label} className="flex items-center">
+              {i > 0 && (
+                <span
+                  aria-hidden
+                  className={`mx-1 h-px w-4 sm:w-6 ${
+                    reachable ? 'bg-indigo-300' : 'bg-neutral-200'
+                  }`}
+                />
+              )}
               {reachable ? (
                 <Link
                   href={`/projects/${projectId}/steps/${step}`}
-                  className={`${base} ${style}`}
+                  className={`flex items-center gap-2 rounded-full px-3 py-1.5 transition ${pill}`}
                   aria-current={isActive ? 'step' : undefined}
                 >
                   {content}
                 </Link>
               ) : (
-                <span className={`${base} ${style}`}>{content}</span>
+                <span className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${pill}`}>
+                  {content}
+                </span>
               )}
             </li>
           );

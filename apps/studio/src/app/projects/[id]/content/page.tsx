@@ -45,7 +45,7 @@ export default async function ContentIndexPage({
         保存後、Step7で再公開すると反映されます。
       </p>
 
-      <ul className="mt-6 divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
+      <ul className="card mt-6 divide-y divide-neutral-200">
         {(pages ?? []).map((p) => (
           <li key={p.page_key}>
             <Link
