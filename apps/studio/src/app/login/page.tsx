@@ -10,11 +10,11 @@ export default function LoginPage() {
   );
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-indigo-50 via-[#f5f6f8] to-[#f5f6f8] px-6">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-b from-amber-50 via-[#f5f6f8] to-[#f5f6f8] px-6">
       <div className="card w-full max-w-sm p-8">
         <span
           aria-hidden
-          className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-base font-black text-white"
+          className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 text-base font-black text-white"
         >
           AI
         </span>

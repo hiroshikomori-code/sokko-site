@@ -140,7 +140,7 @@ export async function Step2Template({
         {(templates ?? []).map((t) => (
           <label
             key={t.id}
-            className="card flex cursor-pointer items-center justify-between p-6 transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500/20"
+            className="card flex cursor-pointer items-center justify-between p-6 transition hover:border-amber-300 has-[:checked]:border-amber-500 has-[:checked]:ring-2 has-[:checked]:ring-amber-500/20"
           >
             <div className="flex items-center gap-4">
               <input
@@ -177,7 +177,7 @@ export async function Step2Template({
           {DESIGN_VARIANT_KEYS.map((key) => (
             <label
               key={key}
-              className="card cursor-pointer p-4 transition hover:border-indigo-300 has-[:checked]:border-indigo-500 has-[:checked]:ring-2 has-[:checked]:ring-indigo-500/20"
+              className="card cursor-pointer p-4 transition hover:border-amber-300 has-[:checked]:border-amber-500 has-[:checked]:ring-2 has-[:checked]:ring-amber-500/20"
             >
               <VariantThumb variant={key} mainColor={mainColor} />
               <div className="mt-3 flex items-start gap-2.5">

@@ -50,7 +50,7 @@ export default async function HomePage() {
           <div className="flex items-center gap-2.5">
             <span
               aria-hidden
-              className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-sm font-black text-white"
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 text-sm font-black text-white"
             >
               AI
             </span>
@@ -94,7 +94,7 @@ export default async function HomePage() {
           {(projects ?? []).map((p) => (
             <li
               key={p.id}
-              className="card flex items-center transition hover:border-indigo-300 hover:shadow-md"
+              className="card flex items-center transition hover:border-amber-300 hover:shadow-md"
             >
               <Link
                 href={`/projects/${p.id}/steps/${p.current_step}`}
@@ -118,7 +118,7 @@ export default async function HomePage() {
                         className="h-1.5 w-24 overflow-hidden rounded-full bg-neutral-200"
                       >
                         <span
-                          className="block h-full rounded-full bg-indigo-500"
+                          className="block h-full rounded-full bg-amber-500"
                           style={{ width: `${Math.round((p.current_step / 8) * 100)}%` }}
                         />
                       </span>
@@ -130,13 +130,13 @@ export default async function HomePage() {
               <div className="flex shrink-0 items-center gap-1.5 pr-5">
                 <Link
                   href={`/projects/${p.id}/content`}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-amber-50 hover:text-amber-700"
                 >
                   文言編集
                 </Link>
                 <Link
                   href={`/projects/${p.id}/announcements`}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-amber-50 hover:text-amber-700"
                 >
                   お知らせ
                 </Link>

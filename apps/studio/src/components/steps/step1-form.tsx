@@ -442,7 +442,7 @@ export function Step1Form({
   }) => (
     <section className="card p-6 sm:p-7">
       <h3 className="flex items-center gap-2.5 text-[15px] font-bold text-neutral-900">
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-xs font-bold text-indigo-600">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-xs font-bold text-amber-600">
           {code}
         </span>
         {title}
@@ -467,10 +467,10 @@ export function Step1Form({
       )}
 
       {!readOnly && (
-        <section className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-6">
+        <section className="rounded-2xl border border-amber-200 bg-amber-50/50 p-6">
           <h3 className="text-[15px] font-bold text-neutral-900">
             打ち合わせメモから自動入力
-            <span className="ml-2 rounded-md bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+            <span className="ml-2 rounded-md bg-amber-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
               AI
             </span>
           </h3>

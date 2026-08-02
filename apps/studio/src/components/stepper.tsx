@@ -32,14 +32,14 @@ export function Stepper({
           const isActive = step === activeStep;
 
           const pill = isActive
-            ? 'bg-indigo-600 text-white shadow-sm'
+            ? 'bg-amber-600 text-white shadow-sm'
             : reachable
-              ? 'text-neutral-700 hover:bg-indigo-50'
+              ? 'text-neutral-700 hover:bg-amber-50'
               : 'text-neutral-400';
           const circle = isActive
             ? 'bg-white/25 text-white'
             : done
-              ? 'bg-indigo-100 text-indigo-700'
+              ? 'bg-amber-100 text-amber-700'
               : reachable
                 ? 'bg-white text-neutral-600 ring-1 ring-neutral-300'
                 : 'bg-neutral-100 text-neutral-400';
@@ -61,7 +61,7 @@ export function Stepper({
                 <span
                   aria-hidden
                   className={`mx-1 h-px w-4 sm:w-6 ${
-                    reachable ? 'bg-indigo-300' : 'bg-neutral-200'
+                    reachable ? 'bg-amber-300' : 'bg-neutral-200'
                   }`}
                 />
               )}

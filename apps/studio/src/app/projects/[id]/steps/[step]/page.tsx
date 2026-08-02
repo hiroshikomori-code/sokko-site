@@ -219,7 +219,7 @@ export default async function StepPage({
 
       <main className="mx-auto w-full max-w-3xl px-6 py-8">
         <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
-          <span className="mr-2 text-indigo-600">{step}.</span>
+          <span className="mr-2 text-amber-600">{step}.</span>
           {meta.title}
         </h1>
         <p className="mt-1.5 text-sm text-neutral-500">{meta.description}</p>

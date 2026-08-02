@@ -229,7 +229,7 @@ export function Step4Visual({
                       disabled={busy}
                       onClick={onGenerateHero}
                       title="業種・デザイン・テーマカラーに合う背景をAIが生成します"
-                      className="rounded-lg border border-indigo-600 px-3 py-1.5 text-xs font-semibold text-indigo-600 transition hover:bg-indigo-600 hover:text-white disabled:opacity-50"
+                      className="rounded-lg border border-amber-600 px-3 py-1.5 text-xs font-semibold text-amber-600 transition hover:bg-amber-600 hover:text-white disabled:opacity-50"
                     >
                       {busy ? '生成中…（10〜30秒）' : 'AIで生成'}
                     </button>

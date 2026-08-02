@@ -6,7 +6,7 @@
 /*
  * studio デザインシステム（2026-07 UI刷新）
  * - 基本文字サイズ15px・行間ゆったり（可読性の底上げ）
- * - アクセントは藍（indigo）。主要操作＝藍、破壊的操作＝赤
+ * - アクセントはカミノバのテーマカラー（amber/orange）。主要操作＝アンバー、破壊的操作＝赤
  * - 部品は .card / .btn-* / .input / .badge に集約（画面ごとの独自スタイルを作らない）
  */
 
@@ -17,7 +17,7 @@
   }
   input[type="radio"],
   input[type="checkbox"] {
-    @apply accent-indigo-600;
+    @apply accent-amber-600;
   }
 }
 
@@ -27,7 +27,7 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 disabled:pointer-events-none disabled:opacity-50;
   }
 
   .btn-secondary {
@@ -43,7 +43,7 @@
   }
 
   .input {
-    @apply w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-[15px] text-neutral-900 transition placeholder:text-neutral-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 focus:outline-none disabled:bg-neutral-100 disabled:text-neutral-500;
+    @apply w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-[15px] text-neutral-900 transition placeholder:text-neutral-400 focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 focus:outline-none disabled:bg-neutral-100 disabled:text-neutral-500;
   }
 
   .badge {
