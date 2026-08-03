@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { createClient } from '@/lib/supabase/server';
+import { DesignConcierge } from './design-concierge';
 import {
   DESIGN_VARIANTS,
   DESIGN_VARIANT_KEYS,
@@ -67,10 +68,17 @@ export async function Step2Template({
       .slice(0, 40);
     const nextInput = project.input as {
       basics?: { industryType?: string; industryLabel?: string };
+      mood?: { mainColor?: string };
     };
     if (nextInput.basics) {
       if (rawPreset in INDUSTRY_TYPES) nextInput.basics.industryType = rawPreset;
       if (rawLabel) nextInput.basics.industryLabel = rawLabel;
+    }
+
+    // AIデザイン提案の採用カラー（採用時のみ値が入る。手動選択時は空）
+    const proposedColor = String(formData.get('proposedMainColor') ?? '');
+    if (/^#[0-9a-fA-F]{6}$/.test(proposedColor) && nextInput.mood) {
+      nextInput.mood.mainColor = proposedColor;
     }
 
     await supabase
@@ -185,6 +193,8 @@ export async function Step2Template({
 
       <section className="space-y-3">
         <h3 className="text-sm font-semibold text-neutral-900">デザイン</h3>
+        <DesignConcierge projectId={projectId} />
+        <input type="hidden" name="proposedMainColor" defaultValue="" />
         <div className="grid gap-4 sm:grid-cols-3">
           {DESIGN_VARIANT_KEYS.map((key) => (
             <label

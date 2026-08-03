@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { projectInputSchema, type ProjectInput } from '@sokko/shared';
 import { getCurrentUser } from '@/lib/auth';
+import { suggestDesign, type DesignProposal } from '@/lib/design-concierge';
 import { classifyIndustry } from '@/lib/industry-classifier';
 import { draftStep1, type Step1DraftSuggestion } from '@/lib/step1-drafter';
 import { createClient } from '@/lib/supabase/server';
@@ -79,6 +80,38 @@ export async function draftStep1FromMemo(
   } catch (err) {
     console.error('draftStep1FromMemo failed:', err);
     return { ok: false, error: '下書きの生成に失敗しました。もう一度お試しください' };
+  }
+}
+
+/**
+ * AIデザインコンシェルジュ（Step2）。ヒアリング内容から
+ * バリアント＋メインカラーを根拠付きで3案提案する（保存はしない）。
+ */
+export async function suggestDesignForProject(
+  projectId: string,
+): Promise<
+  { ok: true; proposals: DesignProposal[] } | { ok: false; error: string }
+> {
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from('projects')
+    .select('input')
+    .eq('id', projectId)
+    .single();
+  if (!project) return { ok: false, error: '案件が見つかりません' };
+
+  try {
+    const proposals = await suggestDesign(project.input ?? {});
+    if (proposals.length < 3) {
+      return { ok: false, error: '提案の生成に失敗しました。もう一度お試しください' };
+    }
+    return { ok: true, proposals };
+  } catch (err) {
+    console.error('suggestDesignForProject failed:', err);
+    return { ok: false, error: '提案の生成に失敗しました。もう一度お試しください' };
   }
 }
 
