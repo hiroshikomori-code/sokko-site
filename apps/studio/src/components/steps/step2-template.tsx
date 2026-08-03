@@ -33,6 +33,13 @@ export async function Step2Template({
     .select('id, industry, name, design_tokens, version')
     .order('created_at', { ascending: true });
 
+  // 生成済みページがあれば、デザイン選択は実サイトの縮小ライブプレビューで見せる
+  const { count: pageCount } = await supabase
+    .from('pages')
+    .select('id', { count: 'exact', head: true })
+    .eq('project_id', projectId);
+  const hasPages = (pageCount ?? 0) > 0;
+
   async function confirmTemplate(formData: FormData) {
     'use server';
     const user = await getCurrentUser();
@@ -135,6 +142,10 @@ export async function Step2Template({
         </div>
       </section>
 
+      {/* テンプレが1種の間は選択の余地がないため、UIには出さない（§16: 迷いを作らない） */}
+      {(templates ?? []).length === 1 ? (
+        <input type="hidden" name="templateId" value={templates![0].id} />
+      ) : (
       <section className="space-y-3">
         <h3 className="text-sm font-semibold text-neutral-900">業種テンプレート</h3>
         {(templates ?? []).map((t) => (
@@ -170,6 +181,7 @@ export async function Step2Template({
           </label>
         ))}
       </section>
+      )}
 
       <section className="space-y-3">
         <h3 className="text-sm font-semibold text-neutral-900">デザイン</h3>
@@ -179,7 +191,15 @@ export async function Step2Template({
               key={key}
               className="card cursor-pointer p-4 transition hover:border-amber-300 has-[:checked]:border-amber-500 has-[:checked]:ring-2 has-[:checked]:ring-amber-500/20"
             >
-              <VariantThumb variant={key} mainColor={mainColor} />
+              {hasPages ? (
+                <MiniLivePreview projectId={projectId} variant={key} />
+              ) : (
+                <VariantThumb
+                  variant={key}
+                  mainColor={mainColor}
+                  officeName={input.basics?.officeName}
+                />
+              )}
               <div className="mt-3 flex items-start gap-2.5">
                 <input
                   type="radio"
@@ -222,13 +242,44 @@ export async function Step2Template({
   );
 }
 
-/** バリアントのミニプレビュー（雰囲気が一目で分かる静的サムネイル） */
+/**
+ * 実サイトの縮小ライブプレビュー（生成済み案件用）。
+ * studio内プレビューをembedモード＋バリアント上書きで読み込み、トップページの
+ * ヒーロー付近を縮小表示する。iframeはpointer-events無効なので、カードのどこを
+ * クリックしてもラジオ選択として働く。
+ */
+function MiniLivePreview({
+  projectId,
+  variant,
+}: {
+  projectId: string;
+  variant: DesignVariant;
+}) {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none relative h-44 overflow-hidden rounded-lg border border-neutral-200 bg-white select-none"
+    >
+      <iframe
+        src={`/projects/${projectId}/preview?embed=1&variant=${variant}`}
+        title=""
+        tabIndex={-1}
+        loading="lazy"
+        className="absolute top-0 left-0 h-[1100px] w-[1280px] origin-top-left scale-[0.165] border-0"
+      />
+    </div>
+  );
+}
+
+/** バリアントのミニプレビュー（生成前のフォールバック: 実データを流し込んだ静的サムネイル） */
 function VariantThumb({
   variant,
   mainColor,
+  officeName,
 }: {
   variant: DesignVariant;
   mainColor: string;
+  officeName?: string;
 }) {
   if (variant === 'future') {
     return (
@@ -239,8 +290,8 @@ function VariantThumb({
             background: `linear-gradient(to right, ${mainColor}, #67e8f9)`,
           }}
         />
-        <p className="mt-3 text-[13px] font-black leading-snug text-white">
-          その先の、標準へ。
+        <p className="mt-3 truncate text-[13px] font-black leading-snug text-white">
+          {officeName || 'その先の、標準へ。'}
         </p>
         <div className="mt-2 h-1.5 w-3/4 rounded bg-white/20" />
         <div className="mt-1 h-1.5 w-1/2 rounded bg-white/20" />
@@ -257,8 +308,8 @@ function VariantThumb({
     return (
       <div className="overflow-hidden rounded-lg border border-[#efe5d6] bg-[#faf3e9] p-3">
         <div className="h-1 w-8 rounded-full bg-[#f2c078]" />
-        <p className="mt-3 text-[13px] font-bold leading-snug text-[#3a352e]">
-          ようこそ、私たちの店へ
+        <p className="mt-3 truncate text-[13px] font-bold leading-snug text-[#3a352e]">
+          {officeName || 'ようこそ、私たちの店へ'}
         </p>
         <div className="mt-2 h-1.5 w-3/4 rounded-full bg-[#e5d9c5]" />
         <div className="mt-1 h-1.5 w-1/2 rounded-full bg-[#e5d9c5]" />
@@ -274,8 +325,8 @@ function VariantThumb({
   return (
     <div className="overflow-hidden rounded-lg border border-[#e7e2d7] bg-[#f6f3ec] p-3">
       <div className="h-px w-10 bg-[#bfa268]" />
-      <p className="mt-3 font-serif text-[13px] font-semibold leading-snug text-[#211d16]">
-        信頼に、応える。
+      <p className="mt-3 truncate font-serif text-[13px] font-semibold leading-snug text-[#211d16]">
+        {officeName || '信頼に、応える。'}
       </p>
       <div className="mt-2 h-1.5 w-3/4 bg-[#e7e2d7]" />
       <div className="mt-1 h-1.5 w-1/2 bg-[#e7e2d7]" />
