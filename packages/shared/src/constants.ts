@@ -110,12 +110,69 @@ export const INDUSTRY_PRESETS: Record<
   },
 };
 
-/** 業種を考慮したページ正式名／ナビ表記 */
-export function pageLabelFor(industry: IndustryType, key: PageKey): string {
-  return INDUSTRY_PRESETS[industry].pageLabels?.[key] ?? PAGE_LABELS[key];
+/**
+ * AIが生成する業種プロファイル（動的プリセット）。
+ * プリセット未整備の業種（industryType=generic）向けに、業種判定AIが
+ * 言葉づかい一式を案件ごとに生成する。コード追記なしで全業種に対応する仕組み。
+ * プリセットが存在する業種では使わない（人が調整した語彙を優先）。
+ */
+export type IndustryProfile = {
+  /** 生成プロンプトの書き手役割（例:「町工場（特殊ネジ製造）」） */
+  writerRole: string;
+  /** JSON-LDの@type（SCHEMA_TYPE_OPTIONSから選択） */
+  schemaType: string;
+  pageLabels?: Partial<Record<PageKey, string>>;
+  navLabels?: Partial<Record<PageKey, string>>;
+};
+
+/** JSON-LDに使えるLocalBusiness系タイプ（AIの選択肢を有効な語彙に限定する） */
+export const SCHEMA_TYPE_OPTIONS = [
+  'LocalBusiness',
+  'ProfessionalService',
+  'Store',
+  'Restaurant',
+  'FoodEstablishment',
+  'CafeOrCoffeeShop',
+  'Bakery',
+  'BeautySalon',
+  'HairSalon',
+  'HealthAndBeautyBusiness',
+  'HomeAndConstructionBusiness',
+  'GeneralContractor',
+  'Electrician',
+  'Plumber',
+  'AutoRepair',
+  'RealEstateAgent',
+  'TravelAgency',
+  'EducationalOrganization',
+  'ExerciseGym',
+  'PetStore',
+  'Florist',
+  'DryCleaningOrLaundry',
+] as const;
+
+/** 業種を考慮したページ正式名／ナビ表記（genericはAIプロファイルがあれば優先） */
+export function pageLabelFor(
+  industry: IndustryType,
+  key: PageKey,
+  profile?: IndustryProfile,
+): string {
+  return (
+    (industry === 'generic' ? profile?.pageLabels?.[key] : undefined) ??
+    INDUSTRY_PRESETS[industry].pageLabels?.[key] ??
+    PAGE_LABELS[key]
+  );
 }
-export function navLabelFor(industry: IndustryType, key: PageKey): string {
-  return INDUSTRY_PRESETS[industry].navLabels?.[key] ?? NAV_LABELS[key];
+export function navLabelFor(
+  industry: IndustryType,
+  key: PageKey,
+  profile?: IndustryProfile,
+): string {
+  return (
+    (industry === 'generic' ? profile?.navLabels?.[key] : undefined) ??
+    INDUSTRY_PRESETS[industry].navLabels?.[key] ??
+    NAV_LABELS[key]
+  );
 }
 
 export const PAGE_PATHS: Record<PageKey, string> = {

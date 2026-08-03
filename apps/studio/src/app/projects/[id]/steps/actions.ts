@@ -168,11 +168,14 @@ export async function submitStep1(
   if (judgement) {
     data.basics.industryType = judgement.presetKey;
     data.basics.industryLabel = judgement.industryLabel;
+    // 動的プリセット: generic業種の言葉づかい一式（generic以外はundefinedでクリア）
+    data.basics.industryProfile = judgement.profile;
   } else {
     // 判定失敗時（API障害）: 過去の判定結果を引き継いで確定はブロックしない
     const prev = (project.input as ProjectInput | null)?.basics;
     if (prev?.industryType) data.basics.industryType = prev.industryType;
     if (prev?.industryLabel) data.basics.industryLabel = prev.industryLabel;
+    if (prev?.industryProfile) data.basics.industryProfile = prev.industryProfile;
   }
 
   const { error } = await supabase

@@ -6,8 +6,10 @@ import {
   DESIGN_VARIANTS,
   DESIGN_VARIANT_KEYS,
   INDUSTRY_TYPES,
+  NAV_LABELS,
   type DesignVariant,
   type IndustryType,
+  type PageKey,
   type ProjectInputDraft,
 } from '@sokko/shared';
 
@@ -103,6 +105,9 @@ export async function Step2Template({
   const detectedPreset = (input.basics?.industryType ?? 'generic') as IndustryType;
   const detectedLabel =
     input.basics?.industryLabel ?? INDUSTRY_TYPES[detectedPreset];
+  // 動的プリセット: generic業種のときだけAI生成の言葉づかいを表示・適用
+  const industryProfile =
+    detectedPreset === 'generic' ? input.basics?.industryProfile : undefined;
 
   return (
     <form action={confirmTemplate} className="space-y-6">
@@ -138,12 +143,31 @@ export async function Step2Template({
               >
                 {Object.entries(INDUSTRY_TYPES).map(([k, v]) => (
                   <option key={k} value={k}>
-                    {v}
+                    {k === 'generic' ? `${v}（AIが言葉づかいを自動調整）` : v}
                   </option>
                 ))}
               </select>
             </label>
           </div>
+          {industryProfile && (
+            <div className="mt-4 rounded-xl bg-neutral-50 px-4 py-3 text-xs leading-relaxed text-neutral-600">
+              <p className="font-semibold text-neutral-800">
+                プリセットに無い業種のため、AIがこの事業向けに言葉づかいを調整します
+              </p>
+              <p className="mt-1">文章の語り口: {industryProfile.writerRole}</p>
+              {industryProfile.navLabels && (
+                <p className="mt-0.5">
+                  ナビ表記:{' '}
+                  {Object.entries(industryProfile.navLabels)
+                    .map(([k, v]) => `${NAV_LABELS[k as PageKey]} → ${v}`)
+                    .join(' ／ ')}
+                </p>
+              )}
+              <p className="mt-0.5 text-neutral-400">
+                検索エンジン向け分類: {industryProfile.schemaType}
+              </p>
+            </div>
+          )}
           <p className="mt-3 text-xs text-neutral-500">
             判定が合っていれば何もしなくてOKです。ここの内容がナビの言葉づかい・検索エンジン向け情報に反映されます。
           </p>

@@ -52,6 +52,8 @@ export function buildSiteConfig(
   const siteMeta = siteMetaContentSchema.parse(meta.content);
 
   const industry = input.basics.industryType;
+  // プリセット外業種（generic）はAI生成の言葉づかいプロファイルを使う
+  const profile = industry === 'generic' ? input.basics.industryProfile : undefined;
   const pages: SitePage[] = [];
   for (const key of input.pages.pageKeys as PageKey[]) {
     if (key === 'news') {
@@ -60,7 +62,7 @@ export function buildSiteConfig(
         path: PAGE_PATHS.news,
         title: `お知らせ｜${input.basics.officeName}`,
         description: `${input.basics.officeName}からのお知らせ一覧。`,
-        navLabel: navLabelFor(industry, key),
+        navLabel: navLabelFor(industry, key, profile),
         sections: [{ type: 'news', heading: 'お知らせ' }],
       });
       continue;
@@ -86,7 +88,7 @@ export function buildSiteConfig(
       path: PAGE_PATHS[key],
       title: content.title,
       description: content.description,
-      navLabel: navLabelFor(industry, key),
+      navLabel: navLabelFor(industry, key, profile),
       sections,
     });
   }
@@ -104,7 +106,9 @@ export function buildSiteConfig(
       officeNameKana: input.basics.officeNameKana,
       industryLabel:
         input.basics.industryLabel ?? INDUSTRY_TYPES[input.basics.industryType],
-      schemaType: INDUSTRY_PRESETS[input.basics.industryType].schemaType,
+      schemaType:
+        profile?.schemaType ??
+        INDUSTRY_PRESETS[input.basics.industryType].schemaType,
       description: input.basics.businessSummary,
       address: input.basics.address,
       phone: input.basics.phone,

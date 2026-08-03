@@ -37,6 +37,15 @@ export const basicsSchema = z.object({
     .default('generic'),
   /** 肩書き等に使う自然な業種ラベル（AI判定。例:「学習塾」「工務店」）。無ければプリセット名 */
   industryLabel: z.string().max(40).optional(),
+  /** AI判定が生成する言葉づかい一式（プリセット外業種=genericのみ使用。Step2で確認できる） */
+  industryProfile: z
+    .object({
+      writerRole: z.string().trim().min(1).max(80),
+      schemaType: z.string().trim().min(1).max(60),
+      pageLabels: z.record(z.string(), z.string().max(20)).optional(),
+      navLabels: z.record(z.string(), z.string().max(12)).optional(),
+    })
+    .optional(),
   businessSummary: requiredText('業務内容の一言説明', 200),
   address: requiredText('所在地', 200),
   serviceAreaText: requiredText('商圏（例: 大阪市内・北摂エリア）', 200),

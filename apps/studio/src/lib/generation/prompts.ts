@@ -38,10 +38,13 @@ ${parts.join('\n\n')}`;
 
 export function workerSystemPrompt(input: ProjectInput): string {
   const preset = INDUSTRY_PRESETS[input.basics.industryType];
-  // 汎用プリセットの場合はAI判定の業種ラベル（例: 学習塾）をそのまま役割に使う
+  // 汎用プリセットの場合はAI生成の業種プロファイル（語り口）を最優先し、
+  // 無ければAI判定の業種ラベル（例: 学習塾）をそのまま役割に使う
   const role =
-    input.basics.industryType === 'generic' && input.basics.industryLabel
-      ? input.basics.industryLabel
+    input.basics.industryType === 'generic'
+      ? (input.basics.industryProfile?.writerRole ??
+        input.basics.industryLabel ??
+        preset.writerRole)
       : preset.writerRole;
   return `あなたは${role}専門のWebコピーライターです。
 中小事業者のWebサイトの文章を書きます。
@@ -62,7 +65,7 @@ export function pagePrompt(
   docs?: ProvidedDoc[],
 ): string {
   const blueprint = PAGE_BLUEPRINTS[pageKey];
-  return `以下の事業者情報をもとに、「${pageLabelFor(input.basics.industryType, pageKey)}」ページの文章を生成してください。
+  return `以下の事業者情報をもとに、「${pageLabelFor(input.basics.industryType, pageKey, input.basics.industryProfile)}」ページの文章を生成してください。
 
 ## ページの目的
 ${blueprint.purpose}
