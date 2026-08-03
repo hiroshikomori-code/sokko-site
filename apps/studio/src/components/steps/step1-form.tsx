@@ -52,7 +52,6 @@ type FormValues = {
   cta: { primaryAction: string; bookingToolUrl: string };
   pages: { pageKeys: string[] };
   mood: { tone: string; mainColor: string; referenceUrl1: string; referenceUrl2: string };
-  assets: { hasLogo: boolean; photoCount: number; pamphletNote: string };
   aeo: {
     serviceAreaCitiesText: string; // 改行・読点区切り → 配列へ変換
     hasGbp: boolean;
@@ -121,11 +120,6 @@ function toDefaults(input: ProjectInputDraft): FormValues {
       referenceUrl1: input.mood?.referenceUrls?.[0] ?? '',
       referenceUrl2: input.mood?.referenceUrls?.[1] ?? '',
     },
-    assets: {
-      hasLogo: input.assets?.hasLogo ?? false,
-      photoCount: input.assets?.photoCount ?? 0,
-      pamphletNote: input.assets?.pamphletNote ?? '',
-    },
     aeo: {
       serviceAreaCitiesText: (input.aeo?.serviceAreaCities ?? []).join('\n'),
       hasGbp: input.aeo?.hasGbp ?? false,
@@ -178,11 +172,6 @@ function toInput(v: FormValues) {
       tone: v.mood.tone,
       mainColor: v.mood.mainColor,
       referenceUrls: [v.mood.referenceUrl1, v.mood.referenceUrl2].filter(Boolean),
-    },
-    assets: {
-      hasLogo: v.assets.hasLogo,
-      photoCount: Number(v.assets.photoCount) || 0,
-      pamphletNote: v.assets.pamphletNote || undefined,
     },
     aeo: {
       serviceAreaCities: splitList(v.aeo.serviceAreaCitiesText),
@@ -768,39 +757,7 @@ export function Step1Form({
           </Field>
         </Section>
 
-        <Section code="G" title="素材">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="ロゴ" required path="assets.hasLogo">
-              <label className="mt-2 flex items-center gap-2 text-sm">
-                <input type="checkbox" {...register('assets.hasLogo')} />
-                ロゴデータがある
-              </label>
-            </Field>
-            <Field
-              label="写真の点数"
-              required
-              path="assets.photoCount"
-              hint="0でも公開できます（写真なしのデザインに自動調整）"
-            >
-              <input
-                type="number"
-                min={0}
-                max={50}
-                className={inputCls}
-                {...register('assets.photoCount', { valueAsNumber: true })}
-              />
-            </Field>
-          </div>
-          <Field label="既存パンフレット等（任意）" path="assets.pamphletNote">
-            <input
-              className={inputCls}
-              placeholder="例: 会社案内PDFあり"
-              {...register('assets.pamphletNote')}
-            />
-          </Field>
-        </Section>
-
-        <Section code="H" title="AIに見つけてもらう設定（AEO/GEO）">
+        <Section code="G" title="AIに見つけてもらう設定（AEO/GEO）">
           <Field
             label="商圏エリア（市区町村）"
             required
@@ -850,7 +807,7 @@ export function Step1Form({
           </div>
         </Section>
 
-        <Section code="I" title="運用">
+        <Section code="H" title="運用">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="ドメイン" required path="operation.domainType">
               <select className={inputCls} {...register('operation.domainType')}>

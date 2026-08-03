@@ -101,13 +101,6 @@ export const moodSchema = z.object({
     .max(2),
 });
 
-/** G. 素材（§10-G） */
-export const assetsSchema = z.object({
-  hasLogo: z.boolean(),
-  photoCount: z.number().int().min(0).max(50),
-  pamphletNote: optionalText(500),
-});
-
 /** H. AEO/GEO（§10-H・堀）— positioningStatement は必須燃料 */
 export const aeoSchema = z.object({
   serviceAreaCities: z
@@ -145,7 +138,6 @@ export const projectInputSchema = z.object({
   cta: ctaSchema,
   pages: pagesSchema,
   mood: moodSchema,
-  assets: assetsSchema,
   aeo: aeoSchema,
   operation: operationSchema,
 });
