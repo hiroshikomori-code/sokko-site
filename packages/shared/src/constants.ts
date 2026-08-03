@@ -150,9 +150,31 @@ export const DESIGN_VARIANTS = {
     description:
       '丸ゴシック×大きな角丸×柔らかな配色。飲食・美容・地域密着サービス向け',
   },
+  minimal: {
+    label: 'ミニマル・洗練',
+    description:
+      '白基調×細身タイポ×余白重視。デザイン事務所・コンサル・建築など洗練を打ち出したい事業向け',
+  },
+  editorial: {
+    label: 'エディトリアル・知的',
+    description:
+      '力強い明朝×はっきりした罫線×雑誌のような紙面。クリニック・教育・出版/メディア向け',
+  },
+  craft: {
+    label: 'クラフト・実直',
+    description:
+      'クラフト紙の風合い×太いゴシック×茶系の配色。工務店・製造業・工房など手仕事の事業向け',
+  },
 } as const;
 export type DesignVariant = keyof typeof DESIGN_VARIANTS;
-export const DESIGN_VARIANT_KEYS = ['classic', 'future', 'warm'] as const;
+export const DESIGN_VARIANT_KEYS = [
+  'classic',
+  'future',
+  'warm',
+  'minimal',
+  'editorial',
+  'craft',
+] as const;
 
 /** CTA種別（§10-D） */
 export const CTA_TYPES = {

@@ -322,6 +322,60 @@ function VariantThumb({
       </div>
     );
   }
+  if (variant === 'minimal') {
+    return (
+      <div className="overflow-hidden rounded-lg border border-[#e8e9eb] bg-white p-3">
+        <div className="h-px w-10 bg-[#17181a]" />
+        <p className="mt-3 truncate text-[13px] font-medium tracking-wide leading-snug text-[#17181a]">
+          {officeName || '本質だけを、まっすぐに。'}
+        </p>
+        <div className="mt-2 h-1.5 w-3/4 bg-[#f0f0f2]" />
+        <div className="mt-1 h-1.5 w-1/2 bg-[#f0f0f2]" />
+        <span
+          className="mt-3 inline-block px-3 py-1 text-[10px] font-bold text-white"
+          style={{ backgroundColor: mainColor }}
+        >
+          相談する
+        </span>
+      </div>
+    );
+  }
+  if (variant === 'editorial') {
+    return (
+      <div className="overflow-hidden rounded-lg border border-[#c9c4b8] bg-[#fbfaf8] p-3">
+        <div className="h-1 w-full bg-[#1c1b18]" />
+        <p className="mt-3 truncate font-serif text-[13px] font-bold leading-snug text-[#1c1b18]">
+          {officeName || '知を、かたちにする。'}
+        </p>
+        <div className="mt-2 h-1.5 w-3/4 bg-[#eae7de]" />
+        <div className="mt-1 h-1.5 w-1/2 bg-[#eae7de]" />
+        <span
+          className="mt-3 inline-block px-3 py-1 text-[10px] font-bold text-white"
+          style={{ backgroundColor: mainColor }}
+        >
+          相談する
+        </span>
+      </div>
+    );
+  }
+  if (variant === 'craft') {
+    return (
+      <div className="overflow-hidden rounded-lg border border-[#d9cbb6] bg-[#f5efe6] p-3">
+        <div className="h-1 w-8 rounded-sm bg-[#a9805a]" />
+        <p className="mt-3 truncate text-[13px] font-extrabold leading-snug text-[#33291d]">
+          {officeName || '手仕事に、誠実に。'}
+        </p>
+        <div className="mt-2 h-1.5 w-3/4 rounded-sm bg-[#e3d7c3]" />
+        <div className="mt-1 h-1.5 w-1/2 rounded-sm bg-[#e3d7c3]" />
+        <span
+          className="mt-3 inline-block rounded-md px-3 py-1 text-[10px] font-bold text-white"
+          style={{ backgroundColor: mainColor }}
+        >
+          相談する
+        </span>
+      </div>
+    );
+  }
   return (
     <div className="overflow-hidden rounded-lg border border-[#e7e2d7] bg-[#f6f3ec] p-3">
       <div className="h-px w-10 bg-[#bfa268]" />
