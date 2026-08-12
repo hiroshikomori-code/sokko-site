@@ -829,18 +829,22 @@ export function Step1Form({
             </Field>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="公開希望時期" required path="operation.desiredLaunchDate">
+            <Field
+              label="いつまでに公開したいか"
+              required
+              path="operation.desiredLaunchDate"
+              hint="納期のメモです。日付でなくてOK（未定なら「未定」と入力）"
+            >
               <input
                 className={inputCls}
-                placeholder="例: 8月末まで"
+                placeholder="例: 9月末まで／お盆前／未定"
                 {...register('operation.desiredLaunchDate')}
               />
             </Field>
             <Field
-              label="承認者メールアドレス"
-              required
+              label="承認者メールアドレス（任意）"
               path="operation.approverEmail"
-              hint="公開前レビューの承認者"
+              hint="記録用のメモです（実際の承認は承認者アカウントのログインで行います）"
             >
               <input
                 className={inputCls}

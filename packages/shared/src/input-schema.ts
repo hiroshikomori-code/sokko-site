@@ -130,11 +130,14 @@ export const operationSchema = z.object({
     errorMap: () => ({ message: 'ドメインの種別を選択してください' }),
   }),
   domainName: optionalText(100),
-  desiredLaunchDate: requiredText('公開希望時期', 50),
+  desiredLaunchDate: requiredText('いつまでに公開したいか（未定なら「未定」）', 50),
+  // 実際の承認は承認者ロールのログインで行うため記録用メモ（任意）
   approverEmail: z
-    .string({ required_error: '承認者は必須です' })
+    .string()
     .trim()
-    .email('承認者のメールアドレスの形式が正しくありません'),
+    .email('承認者のメールアドレスの形式が正しくありません')
+    .optional()
+    .or(z.literal('').transform(() => undefined)),
   updateFrequency: optionalText(100),
   updateOwner: optionalText(100),
 });
