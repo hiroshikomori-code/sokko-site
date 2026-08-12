@@ -771,7 +771,11 @@ export function Step1Form({
             />
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Googleビジネスプロフィール" required path="aeo.hasGbp">
+            <Field
+              label="Googleビジネスプロフィール"
+              path="aeo.hasGbp"
+              hint="未登録ならチェックなしのままでOKです"
+            >
               <label className="mt-2 flex items-center gap-2 text-sm">
                 <input type="checkbox" {...register('aeo.hasGbp')} />
                 登録済み
