@@ -167,8 +167,9 @@ export async function buildDraftSiteConfig(
   const { input, pages, buildOpts } = loaded.data;
 
   const generated = new Set(pages.map((p) => p.page_key));
-  if (!generated.has('home')) {
-    return { ok: false, error: 'トップページを執筆中です' };
+  // どのページでも1つ書き上がれば表示を始める（トップを待たない=早く見せる）
+  if (![...generated].some((k) => k !== META_PAGE_KEY)) {
+    return { ok: false, error: 'まだ書き上がったページがありません' };
   }
 
   // 完成したページだけをナビに載せる（newsは生成不要なので常に含める）

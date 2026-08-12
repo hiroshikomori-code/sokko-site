@@ -128,35 +128,42 @@ const DRAFT_REVEAL_SCRIPT = `
       if (secs.length === 0) return;
       secs.forEach(function (s) {
         s.style.opacity = '0';
-        s.style.transform = 'translateY(16px)';
-        s.style.transition = 'opacity .55s ease, transform .55s ease';
+        s.style.transform = 'translateY(18px)';
+        s.style.transition = 'opacity .45s ease, transform .45s ease';
         Array.prototype.forEach.call(s.querySelectorAll('img'), function (img) {
-          img.style.filter = 'blur(10px)';
-          img.style.transition = 'filter .9s ease';
+          img.style.filter = 'blur(12px)';
+          img.style.transition = 'filter .8s ease';
         });
       });
-      secs.forEach(function (s, i) {
+      var delay = 250;
+      secs.forEach(function (s, idx) {
         setTimeout(function () {
+          try { s.scrollIntoView({ behavior: 'smooth', block: idx === 0 ? 'start' : 'center' }); } catch (e) {}
           s.style.opacity = '1';
           s.style.transform = 'none';
           Array.prototype.forEach.call(s.querySelectorAll('img'), function (img) {
             img.style.filter = 'none';
           });
-        }, i === 0 ? 120 : 700 + 420 * i);
+          var h = s.querySelector('h1, h2, h3');
+          if (h) {
+            var full = h.textContent || '';
+            h.textContent = '\u00A0';
+            var i = 0;
+            var step = Math.max(12, Math.min(40, Math.round(650 / Math.max(full.length, 1))));
+            (function type() {
+              i++;
+              h.textContent = full.slice(0, i) + (i < full.length ? '\u258D' : '');
+              if (i < full.length) setTimeout(type, step);
+              else h.textContent = full;
+            })();
+          }
+        }, delay);
+        delay += 850;
       });
-      var h = document.querySelector('main h1') || document.querySelector('main h2');
-      if (h) {
-        var full = h.textContent || '';
-        h.textContent = '\\u00A0';
-        var i2 = 0;
-        var step = Math.max(18, Math.min(60, Math.round(1100 / Math.max(full.length, 1))));
-        setTimeout(function type() {
-          i2++;
-          h.textContent = full.slice(0, i2) + (i2 < full.length ? '\\u258D' : '');
-          if (i2 < full.length) setTimeout(type, step);
-          else h.textContent = full;
-        }, 430);
-      }
+      // 組み立て終わったら先頭へ戻る
+      setTimeout(function () {
+        try { scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+      }, delay + 500);
     } catch (e) {}
   }
   if (document.readyState === 'complete') run();

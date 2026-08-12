@@ -57,16 +57,23 @@ export function Step3Generate({
   const [pending, startTransition] = useTransition();
   const runningRef = useRef(false);
 
-  // ライブ建設ビュー: いま書き上がったページへ自動でプレビューを切り替える
-  const [viewPath, setViewPath] = useState('/');
+  // ライブ建設ビュー: 最初の1ページが書き上がった瞬間から表示を始め、
+  // 以降はいま書き上がったページへ自動でプレビューを切り替える
+  const [viewPath, setViewPath] = useState<string | null>(null);
   const seenDoneRef = useRef<Set<string> | null>(null);
   useEffect(() => {
     const done = new Set(
       jobs.filter((j) => j.status === 'done').map((j) => j.page_key),
     );
     if (seenDoneRef.current === null) {
-      // 初回は記録のみ（途中から開いたときに過去分へ飛ばない）
-      if (jobs.length > 0) seenDoneRef.current = done;
+      // 初回スナップショット: 既に書き上がっているページがあればそこから表示
+      if (jobs.length > 0) {
+        seenDoneRef.current = done;
+        const first = pageOrder.find(
+          (k) => k !== META_PAGE_KEY && done.has(k),
+        ) as PageKey | undefined;
+        if (first) setViewPath(PAGE_PATHS[first] ?? '/');
+      }
       return;
     }
     const newlyDone = [...done].filter(
@@ -77,7 +84,7 @@ export function Step3Generate({
       setViewPath(PAGE_PATHS[key] ?? '/');
     }
     seenDoneRef.current = done;
-  }, [jobs]);
+  }, [jobs, pageOrder]);
 
   const refresh = useCallback(async () => {
     const supabase = createClient();
@@ -306,7 +313,6 @@ export function Step3Generate({
         <LiveBuildPane
           projectId={projectId}
           siteName={siteName}
-          homeDone={jobs.some((j) => j.page_key === 'home' && j.status === 'done')}
           doneCount={jobs.filter((j) => j.status === 'done').length}
           total={jobs.length}
           viewPath={viewPath}
@@ -325,21 +331,19 @@ export function Step3Generate({
 function LiveBuildPane({
   projectId,
   siteName,
-  homeDone,
   doneCount,
   total,
   viewPath,
 }: {
   projectId: string;
   siteName: string;
-  homeDone: boolean;
   doneCount: number;
   total: number;
-  /** いま表示するページ（書き上がったページに自動で切り替わる） */
-  viewPath: string;
+  /** いま表示するページ（書き上がったページに自動で切り替わる。null=まだ1ページも無い） */
+  viewPath: string | null;
 }) {
   const progress = total > 0 ? Math.round((doneCount / total) * 100) : 0;
-  const pathSuffix = viewPath === '/' ? '' : viewPath;
+  const pathSuffix = viewPath === '/' || viewPath === null ? '' : viewPath;
   return (
     <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
       {/* ブラウザ風のヘッダー（デモ映え＋「実物である」ことの演出） */}
@@ -350,7 +354,7 @@ function LiveBuildPane({
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
         </span>
         <p className="min-w-0 flex-1 truncate text-center text-xs text-neutral-500">
-          {siteName} — {homeDone ? 'いま組み上がっています' : '建設準備中'}
+          {siteName} — {viewPath !== null ? 'いま組み上がっています' : '建設準備中'}
         </p>
         <span className="flex shrink-0 items-center gap-2 text-xs text-neutral-400">
           <span
@@ -365,7 +369,7 @@ function LiveBuildPane({
           {doneCount}/{total}
         </span>
       </div>
-      {homeDone ? (
+      {viewPath !== null ? (
         <iframe
           key={`${viewPath}:${doneCount}`}
           src={`/projects/${projectId}/preview${pathSuffix}?embed=1&draft=1`}
@@ -381,7 +385,7 @@ function LiveBuildPane({
             {siteName} のサイトを建設中…
           </p>
           <p className="text-xs text-neutral-500">
-            トップページが書き上がると、ここに実物が現れます
+            最初のページが書き上がると、ここに実物が現れます
           </p>
         </div>
       )}
