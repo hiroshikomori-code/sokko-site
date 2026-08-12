@@ -1,6 +1,12 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { META_PAGE_KEY } from '@sokko/shared';
+import {
+  META_PAGE_KEY,
+  pageLabelFor,
+  type IndustryProfile,
+  type IndustryType,
+  type PageKey,
+} from '@sokko/shared';
 import { getCurrentUser } from '@/lib/auth';
 import { getProjectForStep, maxReachableStep } from '@/lib/projects';
 import { createClient } from '@/lib/supabase/server';
@@ -22,8 +28,8 @@ const STEP_TITLES: Record<number, { title: string; description: string }> = {
       'お客様から聞いた内容を入力してください。★印は仕上がりを決める大事な項目です。',
   },
   2: { title: 'テンプレート・デザイン選択', description: '業種の標準デザインから調整します。' },
-  3: { title: 'コンテンツ自動生成', description: 'AIが全ページの文章を作成します。' },
-  4: { title: 'ビジュアル配置', description: '写真の取り扱いを確認します。' },
+  3: { title: 'ビジュアル配置', description: '写真を配置します（後からでも差し替えできます）。' },
+  4: { title: 'コンテンツ自動生成', description: 'AIが全ページの文章を作成します。写真もその場で組み上がります。' },
   5: { title: 'AEO/GEO最適化', description: 'AIに見つけてもらう設定は自動で適用されています。' },
   6: { title: 'プレビュー・品質チェック・承認', description: '公開前の最終確認です。' },
   7: { title: '公開', description: '承認済みのサイトを公開します。' },
@@ -76,20 +82,7 @@ export default async function StepPage({
         />
       );
       break;
-    case 3:
-      content = (
-        <Step3Generate
-          projectId={project.id}
-          isGenerating={project.status === 'generating'}
-          isRevising={project.status === 'revising'}
-          siteName={
-            (project.input as { basics?: { officeName?: string } } | null)
-              ?.basics?.officeName ?? project.name
-          }
-        />
-      );
-      break;
-    case 4: {
+    case 3: {
       const { data: full } = await supabase
         .from('projects')
         .select('visuals')
@@ -101,6 +94,35 @@ export default async function StepPage({
           initialVisuals={(full?.visuals ?? {}) as Record<string, string>}
           readOnly={project.status === 'generating'}
           aiImageEnabled={!!process.env.GEMINI_API_KEY}
+        />
+      );
+      break;
+    }
+    case 4: {
+      // 進捗リストをサイトのナビと同じ順・同じ言葉づかいで見せる
+      const input = project.input as {
+        basics?: {
+          officeName?: string;
+          industryType?: IndustryType;
+          industryProfile?: IndustryProfile;
+        };
+        pages?: { pageKeys?: PageKey[] };
+      } | null;
+      const industryType = input?.basics?.industryType ?? 'generic';
+      const profile = input?.basics?.industryProfile;
+      const pageKeys = (input?.pages?.pageKeys ?? []).filter((k) => k !== 'news');
+      const pageOrder = [...pageKeys, META_PAGE_KEY];
+      const pageLabels = Object.fromEntries(
+        pageKeys.map((k) => [k, pageLabelFor(industryType, k, profile)]),
+      );
+      content = (
+        <Step3Generate
+          projectId={project.id}
+          isGenerating={project.status === 'generating'}
+          isRevising={project.status === 'revising'}
+          siteName={input?.basics?.officeName ?? project.name}
+          pageOrder={pageOrder}
+          pageLabels={pageLabels}
         />
       );
       break;
@@ -199,7 +221,7 @@ export default async function StepPage({
   return (
     <>
       <header className="sticky top-0 z-10 border-b border-neutral-200/80 bg-white/90 backdrop-blur">
-        <div className={`mx-auto w-full px-6 pt-3 ${step === 3 ? 'max-w-6xl' : 'max-w-3xl'}`}>
+        <div className={`mx-auto w-full px-6 pt-3 ${step === 4 ? 'max-w-6xl' : 'max-w-3xl'}`}>
           <div className="flex items-center justify-between">
             <Link
               href="/"
@@ -221,7 +243,7 @@ export default async function StepPage({
         </div>
       </header>
 
-      <main className={`mx-auto w-full px-6 py-8 ${step === 3 ? 'max-w-6xl' : 'max-w-3xl'}`}>
+      <main className={`mx-auto w-full px-6 py-8 ${step === 4 ? 'max-w-6xl' : 'max-w-3xl'}`}>
         <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
           <span className="mr-2 text-amber-600">{step}.</span>
           {meta.title}

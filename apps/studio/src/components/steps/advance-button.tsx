@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { advanceStep } from '@/app/projects/[id]/steps/review-actions';
 
 /**
- * Step4/5の「次へ」ボタン。
+ * Step3/5の「次へ」ボタン。
  * フォーム送信型だと一部のブラウザ環境（拡張機能等）で送信自体が発生せず
  * 「押しても無反応」になる事象があったため、Server Actionを直接呼ぶ方式に統一。
  * 押下時の「処理中…」表示と失敗時のエラー表示を備える（無反応をなくす）。
@@ -16,7 +16,7 @@ export function AdvanceButton({
   disabled,
 }: {
   projectId: string;
-  fromStep: 4 | 5;
+  fromStep: 3 | 5;
   label: string;
   disabled?: boolean;
 }) {

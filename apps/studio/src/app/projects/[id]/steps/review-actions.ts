@@ -92,10 +92,10 @@ export async function checkDeployCompleted(
   return { done: (data?.length ?? 0) > 0 };
 }
 
-/** Step4/5の単純な前進（写真配置・AEO確認はMVPでは確認のみ） */
+/** Step3/5の単純な前進（写真配置・AEO確認は確認のみで次へ進める） */
 export async function advanceStep(
   projectId: string,
-  fromStep: 4 | 5,
+  fromStep: 3 | 5,
 ): Promise<void> {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
@@ -145,7 +145,7 @@ export async function deployPreview(projectId: string): Promise<ActionResult> {
   if ((needsRevision ?? []).length > 0) {
     return {
       ok: false,
-      error: `差し戻し対応が未完了のページがあります（Step3で再生成してください）: ${(needsRevision ?? []).map((p) => p.page_key).join(', ')}`,
+      error: `差し戻し対応が未完了のページがあります（Step4で再生成してください）: ${(needsRevision ?? []).map((p) => p.page_key).join(', ')}`,
     };
   }
 

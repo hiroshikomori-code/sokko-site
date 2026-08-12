@@ -262,8 +262,8 @@ export function Step4Visual({
       <div className="flex justify-end">
         <AdvanceButton
           projectId={projectId}
-          fromStep={4}
-          label="次へ（AEO/GEO確認）"
+          fromStep={3}
+          label="次へ（コンテンツ生成）"
           disabled={busySlot !== null}
         />
       </div>

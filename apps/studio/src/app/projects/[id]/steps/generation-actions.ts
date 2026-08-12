@@ -141,7 +141,7 @@ export async function completeGeneration(
     .from('projects')
     .update({
       status: project.status === 'generating' ? 'draft' : project.status,
-      current_step: Math.max(project.current_step, 4),
+      current_step: Math.max(project.current_step, 5),
     })
     .eq('id', projectId);
   await supabase.from('audit_log').insert({
@@ -151,5 +151,5 @@ export async function completeGeneration(
     detail: {},
   });
 
-  redirect(`/projects/${projectId}/steps/4`);
+  redirect(`/projects/${projectId}/steps/5`);
 }

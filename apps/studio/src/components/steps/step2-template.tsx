@@ -269,7 +269,7 @@ export async function Step2Template({
           type="submit"
           className="btn-primary"
         >
-          このデザインで次へ（コンテンツ生成）
+          このデザインで次へ（写真の配置）
         </button>
       </div>
     </form>

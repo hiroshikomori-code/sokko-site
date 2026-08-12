@@ -178,7 +178,7 @@ export function Step6Review({
               .map((p) => PAGE_LABELS[p.page_key as PageKey] ?? p.page_key)
               .join('、')}
             <br />
-            Step3で対象ページを再生成してから、再度プレビューをデプロイしてください。
+            Step4で対象ページを再生成してから、再度プレビューをデプロイしてください。
           </p>
         </div>
       )}

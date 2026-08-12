@@ -41,7 +41,7 @@ export function maxReachableStep(project: Pick<Project, 'status' | 'current_step
  * ステップゲート（計画3章: URL直打ちで飛べない）。
  * - 存在しない案件 → 一覧へ
  * - 先のステップへは到達済みまで（公開済みはStep8まで開放）
- * - 生成中は Step3 に固定
+ * - 生成中は Step4（コンテンツ生成）に固定
  */
 export async function getProjectForStep(
   id: string,
@@ -50,8 +50,9 @@ export async function getProjectForStep(
   const project = await getProject(id);
   if (!project) redirect('/');
 
-  if (project.status === 'generating' && step !== 3) {
-    redirect(`/projects/${id}/steps/3`);
+  if (project.status === 'generating') {
+    if (step !== 4) redirect(`/projects/${id}/steps/4`);
+    return project; // 生成中はcurrent_stepに関わらずStep4を表示する
   }
   const maxStep = maxReachableStep(project);
   if (step > maxStep) {

@@ -27,9 +27,9 @@ type Job = {
 const CONCURRENCY = 2;
 const STALE_MS = 5 * 60 * 1000;
 
-function labelOf(pageKey: string): string {
+function labelOf(pageKey: string, pageLabels: Record<string, string>): string {
   if (pageKey === META_PAGE_KEY) return 'サイト全体メタ（FAQ・AI向け要約）';
-  return PAGE_LABELS[pageKey as PageKey] ?? pageKey;
+  return pageLabels[pageKey] ?? PAGE_LABELS[pageKey as PageKey] ?? pageKey;
 }
 
 export function Step3Generate({
@@ -37,6 +37,8 @@ export function Step3Generate({
   isGenerating,
   isRevising,
   siteName,
+  pageOrder,
+  pageLabels,
 }: {
   projectId: string;
   /** projects.status === 'generating' */
@@ -45,6 +47,10 @@ export function Step3Generate({
   isRevising: boolean;
   /** ライブ建設ビューの表示用（事業者名） */
   siteName: string;
+  /** 進捗リストの表示順（サイトのナビ順。トップが先頭・_metaが最後） */
+  pageOrder: string[];
+  /** サイトのナビと同じ言葉づかいのページ名（業種プリセット/AIプロファイル適用済み） */
+  pageLabels: Record<string, string>;
 }) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -159,6 +165,14 @@ export function Step3Generate({
     job.heartbeat_at !== null &&
     Date.now() - new Date(job.heartbeat_at).getTime() > STALE_MS;
 
+  const orderIndex = (key: string) => {
+    const i = pageOrder.indexOf(key);
+    return i === -1 ? pageOrder.length : i;
+  };
+  const orderedJobs = [...jobs].sort(
+    (a, b) => orderIndex(a.page_key) - orderIndex(b.page_key),
+  );
+
   const allDone = jobs.length > 0 && jobs.every((j) => j.status === 'done');
   const anyActive = jobs.some((j) => j.status === 'running' && !isStale(j));
   const totalTokens = jobs.reduce(
@@ -194,13 +208,13 @@ export function Step3Generate({
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(300px,2fr)_5fr]">
         <div className="space-y-4">
           <ul className="card divide-y divide-neutral-200">
-            {jobs.map((job) => {
+            {orderedJobs.map((job) => {
               const stale = isStale(job);
               return (
                 <li key={job.id} className="flex items-center justify-between px-5 py-3.5">
                   <div>
                     <p className="text-sm font-medium text-neutral-900">
-                      {labelOf(job.page_key)}
+                      {labelOf(job.page_key, pageLabels)}
                     </p>
                     {job.status === 'failed' && job.error && (
                       <p className="mt-0.5 max-w-md truncate text-xs text-red-600">
@@ -273,7 +287,7 @@ export function Step3Generate({
                   disabled={pending}
                   className="btn-primary"
                 >
-                  次へ（ビジュアル配置）
+                  次へ（AEO/GEO確認）
                 </button>
               </div>
             ) : !anyActive && isGenerating ? (

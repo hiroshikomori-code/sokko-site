@@ -69,7 +69,7 @@ export default async function ContentIndexPage({
         ))}
         {(pages ?? []).length === 0 && (
           <li className="px-5 py-10 text-center text-sm text-neutral-500">
-            まだ生成されたページがありません（Step3で生成してください）
+            まだ生成されたページがありません（Step4で生成してください）
           </li>
         )}
       </ul>
