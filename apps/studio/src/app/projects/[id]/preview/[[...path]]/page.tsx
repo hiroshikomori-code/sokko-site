@@ -75,6 +75,10 @@ export default async function PreviewPage({
         <SiteShell config={config} currentPath={path}>
           <PageRenderer page={page} config={config} />
         </SiteShell>
+        {draft === '1' && (
+          // ライブ建設ビュー限定の「書き上がり演出」（公開サイトには入らない）
+          <script dangerouslySetInnerHTML={{ __html: DRAFT_REVEAL_SCRIPT }} />
+        )}
       </PreviewFrame>
     );
   }
@@ -105,3 +109,57 @@ export default async function PreviewPage({
     </div>
   );
 }
+
+/**
+ * ライブ建設ビューの「書き上がり演出」。
+ * 初めて表示したページだけ、見出しをタイプライター風に打ち込み、
+ * セクションを上から順に積み上げる（2回目以降は瞬時に表示）。
+ * ハイドレーション衝突を避けるため、load後に素のDOMを直接動かす
+ * （site-kitのAMBIENT_SCRIPTと同じ流儀）。失敗しても表示は壊さない。
+ */
+const DRAFT_REVEAL_SCRIPT = `
+(function () {
+  function run() {
+    try {
+      var key = 'sk-built:' + location.pathname;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+      var secs = Array.prototype.slice.call(document.querySelectorAll('main section'));
+      if (secs.length === 0) return;
+      secs.forEach(function (s) {
+        s.style.opacity = '0';
+        s.style.transform = 'translateY(16px)';
+        s.style.transition = 'opacity .55s ease, transform .55s ease';
+        Array.prototype.forEach.call(s.querySelectorAll('img'), function (img) {
+          img.style.filter = 'blur(10px)';
+          img.style.transition = 'filter .9s ease';
+        });
+      });
+      secs.forEach(function (s, i) {
+        setTimeout(function () {
+          s.style.opacity = '1';
+          s.style.transform = 'none';
+          Array.prototype.forEach.call(s.querySelectorAll('img'), function (img) {
+            img.style.filter = 'none';
+          });
+        }, i === 0 ? 120 : 700 + 420 * i);
+      });
+      var h = document.querySelector('main h1') || document.querySelector('main h2');
+      if (h) {
+        var full = h.textContent || '';
+        h.textContent = '\\u00A0';
+        var i2 = 0;
+        var step = Math.max(18, Math.min(60, Math.round(1100 / Math.max(full.length, 1))));
+        setTimeout(function type() {
+          i2++;
+          h.textContent = full.slice(0, i2) + (i2 < full.length ? '\\u258D' : '');
+          if (i2 < full.length) setTimeout(type, step);
+          else h.textContent = full;
+        }, 430);
+      }
+    } catch (e) {}
+  }
+  if (document.readyState === 'complete') run();
+  else addEventListener('load', run);
+})();
+`;

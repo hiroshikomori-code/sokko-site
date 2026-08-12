@@ -1,7 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
-import { META_PAGE_KEY, PAGE_LABELS, type PageKey } from '@sokko/shared';
+import {
+  META_PAGE_KEY,
+  PAGE_LABELS,
+  PAGE_PATHS,
+  type PageKey,
+} from '@sokko/shared';
 import { createClient } from '@/lib/supabase/client';
 import {
   completeGeneration,
@@ -45,6 +50,28 @@ export function Step3Generate({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const runningRef = useRef(false);
+
+  // ライブ建設ビュー: いま書き上がったページへ自動でプレビューを切り替える
+  const [viewPath, setViewPath] = useState('/');
+  const seenDoneRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const done = new Set(
+      jobs.filter((j) => j.status === 'done').map((j) => j.page_key),
+    );
+    if (seenDoneRef.current === null) {
+      // 初回は記録のみ（途中から開いたときに過去分へ飛ばない）
+      if (jobs.length > 0) seenDoneRef.current = done;
+      return;
+    }
+    const newlyDone = [...done].filter(
+      (k) => !seenDoneRef.current!.has(k) && k !== META_PAGE_KEY,
+    );
+    if (newlyDone.length > 0) {
+      const key = newlyDone[newlyDone.length - 1] as PageKey;
+      setViewPath(PAGE_PATHS[key] ?? '/');
+    }
+    seenDoneRef.current = done;
+  }, [jobs]);
 
   const refresh = useCallback(async () => {
     const supabase = createClient();
@@ -268,6 +295,7 @@ export function Step3Generate({
           homeDone={jobs.some((j) => j.page_key === 'home' && j.status === 'done')}
           doneCount={jobs.filter((j) => j.status === 'done').length}
           total={jobs.length}
+          viewPath={viewPath}
         />
         </div>
       )}
@@ -286,14 +314,18 @@ function LiveBuildPane({
   homeDone,
   doneCount,
   total,
+  viewPath,
 }: {
   projectId: string;
   siteName: string;
   homeDone: boolean;
   doneCount: number;
   total: number;
+  /** いま表示するページ（書き上がったページに自動で切り替わる） */
+  viewPath: string;
 }) {
   const progress = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+  const pathSuffix = viewPath === '/' ? '' : viewPath;
   return (
     <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
       {/* ブラウザ風のヘッダー（デモ映え＋「実物である」ことの演出） */}
@@ -321,8 +353,8 @@ function LiveBuildPane({
       </div>
       {homeDone ? (
         <iframe
-          key={doneCount}
-          src={`/projects/${projectId}/preview?embed=1&draft=1`}
+          key={`${viewPath}:${doneCount}`}
+          src={`/projects/${projectId}/preview${pathSuffix}?embed=1&draft=1`}
           title="ライブ建設ビュー"
           className="h-[600px] w-full border-0 lg:h-[680px]"
         />
