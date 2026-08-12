@@ -31,12 +31,15 @@ export function Step3Generate({
   projectId,
   isGenerating,
   isRevising,
+  siteName,
 }: {
   projectId: string;
   /** projects.status === 'generating' */
   isGenerating: boolean;
   /** projects.status === 'revising'（差し戻し対応中は再生成ボタンを出す） */
   isRevising: boolean;
+  /** ライブ建設ビューの表示用（事業者名） */
+  siteName: string;
 }) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -161,7 +164,8 @@ export function Step3Generate({
           </button>
         </div>
       ) : (
-        <>
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(300px,2fr)_5fr]">
+        <div className="space-y-4">
           <ul className="card divide-y divide-neutral-200">
             {jobs.map((job) => {
               const stale = isStale(job);
@@ -256,7 +260,84 @@ export function Step3Generate({
               </button>
             ) : null}
           </div>
-        </>
+        </div>
+
+        <LiveBuildPane
+          projectId={projectId}
+          siteName={siteName}
+          homeDone={jobs.some((j) => j.page_key === 'home' && j.status === 'done')}
+          doneCount={jobs.filter((j) => j.status === 'done').length}
+          total={jobs.length}
+        />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * ライブ建設ビュー: 書き上がったページから実サイトの見た目そのままで
+ * 組み上がっていく様子を表示する（ナビも完成ページだけが増えていく）。
+ * ページ完成のたび（doneCountの変化）にドラフトプレビューを読み直す。
+ */
+function LiveBuildPane({
+  projectId,
+  siteName,
+  homeDone,
+  doneCount,
+  total,
+}: {
+  projectId: string;
+  siteName: string;
+  homeDone: boolean;
+  doneCount: number;
+  total: number;
+}) {
+  const progress = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+  return (
+    <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+      {/* ブラウザ風のヘッダー（デモ映え＋「実物である」ことの演出） */}
+      <div className="flex items-center gap-3 border-b border-neutral-200 bg-neutral-50 px-4 py-2.5">
+        <span aria-hidden className="flex shrink-0 gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+        </span>
+        <p className="min-w-0 flex-1 truncate text-center text-xs text-neutral-500">
+          {siteName} — {homeDone ? 'いま組み上がっています' : '建設準備中'}
+        </p>
+        <span className="flex shrink-0 items-center gap-2 text-xs text-neutral-400">
+          <span
+            aria-hidden
+            className="h-1.5 w-20 overflow-hidden rounded-full bg-neutral-200"
+          >
+            <span
+              className="block h-full rounded-full bg-amber-500 transition-all duration-700"
+              style={{ width: `${progress}%` }}
+            />
+          </span>
+          {doneCount}/{total}
+        </span>
+      </div>
+      {homeDone ? (
+        <iframe
+          key={doneCount}
+          src={`/projects/${projectId}/preview?embed=1&draft=1`}
+          title="ライブ建設ビュー"
+          className="h-[600px] w-full border-0 lg:h-[680px]"
+        />
+      ) : (
+        <div className="flex h-[600px] flex-col items-center justify-center gap-4 bg-[#f5f6f8] px-6 text-center lg:h-[680px]">
+          <span className="flex h-14 w-14 animate-pulse items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 text-lg font-black text-white">
+            AI
+          </span>
+          <p className="text-sm font-semibold text-neutral-700">
+            {siteName} のサイトを建設中…
+          </p>
+          <p className="text-xs text-neutral-500">
+            トップページが書き上がると、ここに実物が現れます
+          </p>
+        </div>
       )}
     </div>
   );

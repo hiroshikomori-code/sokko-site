@@ -82,6 +82,10 @@ export default async function StepPage({
           projectId={project.id}
           isGenerating={project.status === 'generating'}
           isRevising={project.status === 'revising'}
+          siteName={
+            (project.input as { basics?: { officeName?: string } } | null)
+              ?.basics?.officeName ?? project.name
+          }
         />
       );
       break;
@@ -195,7 +199,7 @@ export default async function StepPage({
   return (
     <>
       <header className="sticky top-0 z-10 border-b border-neutral-200/80 bg-white/90 backdrop-blur">
-        <div className="mx-auto w-full max-w-3xl px-6 pt-3">
+        <div className={`mx-auto w-full px-6 pt-3 ${step === 3 ? 'max-w-6xl' : 'max-w-3xl'}`}>
           <div className="flex items-center justify-between">
             <Link
               href="/"
@@ -217,7 +221,7 @@ export default async function StepPage({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl px-6 py-8">
+      <main className={`mx-auto w-full px-6 py-8 ${step === 3 ? 'max-w-6xl' : 'max-w-3xl'}`}>
         <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
           <span className="mr-2 text-amber-600">{step}.</span>
           {meta.title}

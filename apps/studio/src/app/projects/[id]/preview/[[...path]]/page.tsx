@@ -8,7 +8,10 @@ import {
 } from '@sokko/shared';
 import { getCurrentUser } from '@/lib/auth';
 import { getProject } from '@/lib/projects';
-import { buildAndSaveSiteConfig } from '@/lib/site-config-builder';
+import {
+  buildAndSaveSiteConfig,
+  buildDraftSiteConfig,
+} from '@/lib/site-config-builder';
 import { PreviewFrame } from '@/components/preview-frame';
 
 /**
@@ -17,8 +20,9 @@ import { PreviewFrame } from '@/components/preview-frame';
  * 生成済みならプロジェクトの実SiteConfigを組み立て、未生成ならサンプルを表示。
  *
  * クエリ:
- * - embed=1 … 上部バーなしの素のサイト表示（Step2のミニプレビュー埋め込み用）
- * - variant=classic|future|warm … 保存済みデザインを一時的に差し替えて表示
+ * - embed=1 … 上部バーなしの素のサイト表示（Step2/Step3の埋め込み用）
+ * - draft=1 … 生成済みページだけで組むライブ建設ビュー（Step3。保存しない）
+ * - variant=classic|future|warm|… … 保存済みデザインを一時的に差し替えて表示
  *   （見た目の試着のみ。DBのdesign_variantは変更しない）
  */
 export default async function PreviewPage({
@@ -26,17 +30,20 @@ export default async function PreviewPage({
   searchParams,
 }: {
   params: Promise<{ id: string; path?: string[] }>;
-  searchParams: Promise<{ embed?: string; variant?: string }>;
+  searchParams: Promise<{ embed?: string; draft?: string; variant?: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
 
   const { id, path: pathParts } = await params;
-  const { embed, variant: rawVariant } = await searchParams;
+  const { embed, draft, variant: rawVariant } = await searchParams;
   const project = await getProject(id);
   if (!project) redirect('/');
 
-  const built = await buildAndSaveSiteConfig(id, 'preview');
+  const built =
+    draft === '1'
+      ? await buildDraftSiteConfig(id)
+      : await buildAndSaveSiteConfig(id, 'preview');
   const isSample = !built.ok;
   let config = built.ok ? built.config : SAMPLE_SITE_CONFIG;
   if (
@@ -54,10 +61,21 @@ export default async function PreviewPage({
   if (!page) notFound();
 
   if (embed === '1') {
+    // 埋め込み時もサイト内リンクはプレビュー内遷移に変換する
+    // （embed/draft/variantのクエリを引き継いで素の表示を維持）
+    const carry = [
+      'embed=1',
+      draft === '1' ? 'draft=1' : null,
+      rawVariant ? `variant=${rawVariant}` : null,
+    ]
+      .filter(Boolean)
+      .join('&');
     return (
-      <SiteShell config={config} currentPath={path}>
-        <PageRenderer page={page} config={config} />
-      </SiteShell>
+      <PreviewFrame projectId={id} query={carry}>
+        <SiteShell config={config} currentPath={path}>
+          <PageRenderer page={page} config={config} />
+        </SiteShell>
+      </PreviewFrame>
     );
   }
 
