@@ -27,6 +27,11 @@ export const sectionSchema = z.object({
     'richtext',
     'cta',
   ]),
+  /**
+   * セクションのレイアウト型（buildSiteConfigが決定的ルールで選定。AIは生成しない）。
+   * 未指定・未知の値は各コンポーネントの標準レイアウトで表示する（後方互換）
+   */
+  layout: z.string().max(24).optional(),
   heading: z.string().optional(),
   body: z.string().optional(),
   items: z

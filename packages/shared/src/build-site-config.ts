@@ -41,6 +41,56 @@ export type BuildSiteConfigOptions = {
   variant?: DesignVariant;
 };
 
+/** 案件ごとに安定な擬似乱数（レイアウト分散用。同じ入力なら常に同じ結果=再現性） */
+function stableHash(str: string): number {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+/**
+ * セクションのレイアウト型を決定的ルールで選ぶ（Phase2: デザイン多様化）。
+ * 判断材料: 写真の有無・枚数 / デザインバリアント / 項目数 / 案件IDハッシュ。
+ * AIやオペレーターの操作は挟まない（壊せない設計・再現性＞自由度）。
+ */
+function chooseLayout(
+  type: string,
+  ctx: {
+    seed: number;
+    variant: DesignVariant;
+    hasHero: boolean;
+    hasRepresentative: boolean;
+    worksCount: number;
+    itemCount: number;
+  },
+): string | undefined {
+  const { seed, variant, hasHero, hasRepresentative, worksCount, itemCount } = ctx;
+  switch (type) {
+    case 'hero':
+      // 写真なしはタイポ主役型。futureは全面写真がアイデンティティ。
+      // 余白系（minimal/editorial）は左右分割が映える。残りはハッシュで分散
+      if (!hasHero) return 'typo';
+      if (variant === 'future') return 'photo';
+      if (variant === 'minimal' || variant === 'editorial') return 'split';
+      return seed % 2 === 0 ? 'photo' : 'split';
+    case 'services':
+      // 事例写真が3枚以上あれば写真交互のジグザグ型が最も説得力が出る
+      if (worksCount >= 3 && itemCount >= 2) return 'zigzag';
+      return seed % 2 === 0 ? 'cards' : 'numbered';
+    case 'pricing':
+      // プランが2〜4件ならカード型が読みやすい（多い場合は表が整理される）
+      if (itemCount >= 2 && itemCount <= 4 && seed % 3 !== 0) return 'plans';
+      return 'table';
+    case 'profile':
+      if (hasRepresentative && seed % 3 !== 2) return 'interview';
+      return 'standard';
+    case 'testimonials':
+      return itemCount >= 2 && seed % 2 === 0 ? 'cards' : 'quotes';
+    default:
+      return undefined;
+  }
+}
+
 /**
  * ①入力＋生成済みpages → SiteConfig（三者契約の組み立て。ロジックはここ1箇所）。
  * studio がプレビュー・公開時に呼び、結果を projects.site_config に保存する。
@@ -107,6 +157,21 @@ export function buildSiteConfig(
         ...sections.slice(1),
       ];
     }
+
+    // レイアウト型の付与（案件ID＋ページで安定分散）
+    sections = sections.map((sec) => ({
+      ...sec,
+      layout:
+        sec.layout ??
+        chooseLayout(sec.type, {
+          seed: stableHash(`${opts.projectId}:${key}:${sec.type}`),
+          variant: opts.variant ?? 'classic',
+          hasHero: Boolean(opts.images?.hero),
+          hasRepresentative: Boolean(opts.images?.representative),
+          worksCount: works.length,
+          itemCount: sec.items?.length ?? 0,
+        }),
+    }));
 
     pages.push({
       key,
