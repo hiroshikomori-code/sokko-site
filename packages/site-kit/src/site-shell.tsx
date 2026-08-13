@@ -10,14 +10,41 @@ import { cssVariables } from './tokens';
 const display =
   'font-[family-name:var(--sk-font-display)] [font-weight:var(--sk-display-weight)] tracking-wide [font-feature-settings:"palt"]';
 
+/** CTAの遷移先（sections.tsxのCtaButtonと同じ規則） */
+function ctaHref(config: SiteConfig): string {
+  const { cta } = config;
+  if (cta.primaryAction === 'phone' && cta.phone) return `tel:${cta.phone}`;
+  if (cta.primaryAction !== 'phone' && cta.bookingToolUrl) return cta.bookingToolUrl;
+  return '/contact';
+}
+
 /**
  * スクロール連動の控えめなフェードイン（CSSのみ・JS不要）。
  * - reduced-motion指定時は無効
  * - animation-timeline非対応ブラウザ（Safari等）は@supportsで自動的に静的表示
  * - aria-hidden（装飾レイヤー）は動かさない
  */
-const REVEAL_CSS =
-  '@media (prefers-reduced-motion: no-preference){@supports (animation-timeline: view()){main section > div:not([aria-hidden]){animation:sk-rise .8s cubic-bezier(.2,.7,.3,1) both;animation-timeline:view();animation-range:entry 0% entry 45%}}}@keyframes sk-rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}';
+const REVEAL_CSS = [
+  // スクロール駆動モーション一式（JSゼロ。非対応ブラウザ/reduced-motionは静的表示）
+  '@media (prefers-reduced-motion: no-preference){@supports (animation-timeline: view()){',
+  'main section > div:not([aria-hidden]){animation:sk-rise .8s cubic-bezier(.2,.7,.3,1) both;animation-timeline:view();animation-range:entry 0% entry 45%}',
+  // セクション見出しの金ルールが左から伸びる（サイトの署名モーション）
+  '[data-sk-rule]{transform-origin:left;animation:sk-rule .9s cubic-bezier(.2,.7,.3,1) both;animation-timeline:view();animation-range:entry 0% entry 40%}',
+  // ヒーロー写真の控えめなパララックス
+  '[data-sk-parallax]{animation:sk-par linear both;animation-timeline:scroll();animation-range:0 130vh}',
+  // ジグザグ写真の左右スライドイン
+  '.sk-zig-l{animation:sk-zl .9s cubic-bezier(.2,.7,.3,1) both;animation-timeline:view();animation-range:entry 0% entry 40%}',
+  '.sk-zig-r{animation:sk-zr .9s cubic-bezier(.2,.7,.3,1) both;animation-timeline:view();animation-range:entry 0% entry 40%}',
+  // モバイル固定CTAはスクロールで出現
+  '[data-sk-mobile-cta]{animation:sk-cta .5s ease both;animation-timeline:scroll();animation-range:240px 520px}',
+  '}}',
+  '@keyframes sk-rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}',
+  '@keyframes sk-rule{from{transform:scaleX(0)}}',
+  '@keyframes sk-par{from{transform:translateY(-4%) scale(1.1)}to{transform:translateY(5%) scale(1.1)}}',
+  '@keyframes sk-zl{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}',
+  '@keyframes sk-zr{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}',
+  '@keyframes sk-cta{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:none}}',
+].join('');
 
 export function SiteShell({
   config,
@@ -88,6 +115,20 @@ export function SiteShell({
       </header>
 
       <main>{children}</main>
+
+      {/* モバイル固定CTA（スクロールでふわっと出現。相談導線を常に手元に） */}
+      <div
+        data-sk-mobile-cta
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--sk-line)] bg-[var(--sk-paper)]/95 px-4 py-3 backdrop-blur lg:hidden"
+      >
+        <a
+          href={ctaHref(config)}
+          className="block rounded-[var(--sk-radius)] bg-[var(--sk-primary)] py-3.5 text-center text-sm font-bold tracking-wider text-white shadow-md"
+        >
+          {config.cta.label}
+        </a>
+      </div>
+      <div aria-hidden className="h-[4.5rem] lg:hidden" />
 
       {/* 直前がCTA帯（同じ深色）でも自然につながるよう、余白は挟まない */}
       <footer className="bg-[var(--sk-deep)] text-white/75">

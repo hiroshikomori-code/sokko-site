@@ -147,6 +147,7 @@ export function Hero({ section, config }: SectionProps) {
           sizes="100vw"
           alt=""
           fetchPriority="high"
+          data-sk-parallax
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
         <div
@@ -232,8 +233,8 @@ export function Services({ section, config }: SectionProps) {
                 <div key={item.title} className="grid items-center gap-8 lg:grid-cols-2">
                   {photo && (
                     <div
-                      className={`aspect-[4/3] overflow-hidden rounded-[var(--sk-radius)] border border-[var(--sk-line)] shadow-[var(--sk-shadow-card)] ${
-                        i % 2 === 1 ? 'lg:order-2' : ''
+                      className={`group relative aspect-[4/3] overflow-hidden rounded-[var(--sk-radius)] border border-[var(--sk-line)] shadow-[var(--sk-shadow-card)] ${
+                        i % 2 === 1 ? 'lg:order-2 sk-zig-r' : 'sk-zig-l'
                       }`}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -242,7 +243,11 @@ export function Services({ section, config }: SectionProps) {
                         alt={photo.caption ?? item.title}
                         loading="lazy"
                         decoding="async"
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                      />
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute inset-0 bg-[var(--sk-primary)] opacity-25 mix-blend-color transition-opacity duration-500 group-hover:opacity-0"
                       />
                     </div>
                   )}
@@ -766,6 +771,7 @@ function SectionHeading({ text, center }: { text: string; center?: boolean }) {
     <div className={center ? 'text-center' : ''}>
       <span
         aria-hidden
+        data-sk-rule
         className={`block h-px w-12 bg-[var(--sk-gold)] ${center ? 'mx-auto' : ''}`}
       />
       <h2
@@ -805,7 +811,7 @@ export function WorksGallery({ section, config }: SectionProps) {
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((work, i) => (
             <figure key={`${work.src}-${i}`} className="group">
-              <div className="aspect-[4/3] overflow-hidden rounded-[var(--sk-radius)] border border-[var(--sk-line)] bg-[var(--sk-paper-soft)] shadow-[var(--sk-shadow-card)]">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--sk-radius)] border border-[var(--sk-line)] bg-[var(--sk-paper-soft)] shadow-[var(--sk-shadow-card)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={work.src}
@@ -813,6 +819,10 @@ export function WorksGallery({ section, config }: SectionProps) {
                   loading="lazy"
                   decoding="async"
                   className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                />
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 bg-[var(--sk-primary)] opacity-25 mix-blend-color transition-opacity duration-500 group-hover:opacity-0"
                 />
               </div>
               {work.caption && (
