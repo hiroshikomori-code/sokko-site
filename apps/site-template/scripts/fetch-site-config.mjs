@@ -65,6 +65,10 @@ if (config.images) {
   for (const slot of ['hero', 'heroSm', 'representative', 'office']) {
     config.images[slot] = await localize(config.images[slot], slot);
   }
+  // 事例・作品ギャラリー（複数枚）もビルド同梱して同一オリジン配信にする
+  for (let i = 0; i < (config.images.works ?? []).length; i++) {
+    config.images.works[i].src = await localize(config.images.works[i].src, `work-${i}`);
+  }
 }
 if (config.design?.logoPath) {
   config.design.logoPath = await localize(config.design.logoPath, 'logo');

@@ -22,6 +22,8 @@ export const sectionSchema = z.object({
     'news',
     /** トップ用: 最新お知らせ3件＋一覧導線（buildSiteConfigが自動挿入。AIは生成しない） */
     'news_digest',
+    /** 事例・作品の写真ギャラリー（images.worksから表示。buildSiteConfigが自動挿入） */
+    'works_gallery',
     'richtext',
     'cta',
   ]),
@@ -106,6 +108,16 @@ export const siteConfigSchema = z.object({
       heroSm: imagePathSchema.optional(),
       representative: imagePathSchema.optional(),
       office: imagePathSchema.optional(),
+      /** 事例・作品ギャラリー（施工事例・料理・作品など。登録順で表示） */
+      works: z
+        .array(
+          z.object({
+            src: imagePathSchema,
+            caption: z.string().max(60).optional(),
+          }),
+        )
+        .max(24)
+        .default([]),
     })
     .optional(),
   cta: z.object({

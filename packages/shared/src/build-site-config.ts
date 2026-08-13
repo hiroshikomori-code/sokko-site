@@ -3,6 +3,7 @@ import {
   INDUSTRY_PRESETS,
   INDUSTRY_TYPES,
   navLabelFor,
+  pageLabelFor,
   PAGE_LABELS,
   PAGE_PATHS,
   type DesignVariant,
@@ -27,12 +28,14 @@ export type BuildSiteConfigOptions = {
   templateId: string;
   bakedAnnouncements: { id: string; body: string; publishedAt: string }[];
   logoPath?: string;
-  /** 画像スロットの公開URL（Step4で割当。未設定は写真なしデザイン） */
+  /** 画像スロットの公開URL（ビジュアル配置で割当。未設定は写真なしデザイン） */
   images?: {
     hero?: string;
     heroSm?: string;
     representative?: string;
     office?: string;
+    /** 事例・作品ギャラリー（登録順） */
+    works?: { src: string; caption?: string }[];
   };
   /** デザインバリアント（projects.design_variant。未指定はclassic） */
   variant?: DesignVariant;
@@ -83,6 +86,28 @@ export function buildSiteConfig(
       ];
     }
 
+    // 事例・作品の写真がある場合の自動挿入（AIは生成しない=ビルダーの責務）:
+    // - トップ: 末尾のCTAの手前にダイジェスト（最大6枚）
+    // - 事例ページ(cases): 先頭セクションの直後に全量ギャラリー
+    const works = opts.images?.works ?? [];
+    if (works.length > 0 && key === 'home') {
+      const galleryLabel = pageLabelFor(industry, 'cases', profile);
+      const ctaIndex = sections.findIndex((s) => s.type === 'cta');
+      const insertAt = ctaIndex === -1 ? sections.length : ctaIndex;
+      sections = [
+        ...sections.slice(0, insertAt),
+        { type: 'works_gallery', heading: galleryLabel },
+        ...sections.slice(insertAt),
+      ];
+    }
+    if (works.length > 0 && key === 'cases') {
+      sections = [
+        ...sections.slice(0, 1),
+        { type: 'works_gallery' },
+        ...sections.slice(1),
+      ];
+    }
+
     pages.push({
       key,
       path: PAGE_PATHS[key],
@@ -127,7 +152,9 @@ export function buildSiteConfig(
       logoPath: opts.logoPath,
       variant: opts.variant ?? 'classic',
     },
-    images: opts.images,
+    images: opts.images
+      ? { ...opts.images, works: opts.images.works ?? [] }
+      : undefined,
     cta: {
       primaryAction: input.cta.primaryAction,
       label:

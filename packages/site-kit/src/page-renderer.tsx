@@ -12,6 +12,7 @@ import {
   RichText,
   Services,
   Testimonials,
+  WorksGallery,
 } from './sections';
 
 const SECTION_COMPONENTS: Record<
@@ -28,6 +29,7 @@ const SECTION_COMPONENTS: Record<
   faq: Faq,
   news: News,
   news_digest: NewsDigest,
+  works_gallery: WorksGallery,
   richtext: RichText,
   cta: Cta,
 };

@@ -103,3 +103,67 @@ export async function generateHeroImageForProject(
   });
   return { ok: true, dataUrl: result.dataUrl };
 }
+
+type WorkPhoto = { path: string; caption?: string };
+const MAX_WORKS = 24;
+
+/**
+ * 事例・作品ギャラリーの操作（追加・削除・キャプション変更）。
+ * visuals.works に登録順で保持し、サイトの事例ギャラリーに表示される。
+ */
+export async function updateWorkPhotos(
+  projectId: string,
+  op:
+    | { kind: 'add'; path: string; caption?: string }
+    | { kind: 'remove'; path: string }
+    | { kind: 'caption'; path: string; caption: string },
+): Promise<{ ok: true; works: WorkPhoto[] } | { ok: false; error: string }> {
+  const user = await getCurrentUser();
+  if (!user) redirect('/login');
+
+  if (op.kind === 'add' && !op.path.startsWith(`projects/${projectId}/`)) {
+    return { ok: false, error: '画像パスが不正です' };
+  }
+
+  const supabase = await createClient();
+  const { data: project } = await supabase
+    .from('projects')
+    .select('visuals, status')
+    .eq('id', projectId)
+    .single();
+  if (!project) return { ok: false, error: '案件が見つかりません' };
+  if (project.status === 'generating') {
+    return { ok: false, error: '生成中は画像を変更できません' };
+  }
+
+  const visuals = { ...(project.visuals as Record<string, unknown>) };
+  let works = [...((visuals.works as WorkPhoto[] | undefined) ?? [])];
+
+  if (op.kind === 'add') {
+    if (works.length >= MAX_WORKS) {
+      return { ok: false, error: `事例写真は最大${MAX_WORKS}枚までです` };
+    }
+    works.push({ path: op.path, caption: op.caption?.slice(0, 60) });
+  } else if (op.kind === 'remove') {
+    works = works.filter((w) => w.path !== op.path);
+  } else {
+    works = works.map((w) =>
+      w.path === op.path ? { ...w, caption: op.caption.slice(0, 60) || undefined } : w,
+    );
+  }
+  visuals.works = works;
+
+  const { error } = await supabase
+    .from('projects')
+    .update({ visuals })
+    .eq('id', projectId);
+  if (error) return { ok: false, error: '保存に失敗しました' };
+
+  await supabase.from('audit_log').insert({
+    actor_id: user.id,
+    project_id: projectId,
+    action: `work_photo_${op.kind}`,
+    detail: { count: works.length },
+  });
+  return { ok: true, works };
+}

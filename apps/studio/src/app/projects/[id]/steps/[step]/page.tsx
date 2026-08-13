@@ -88,10 +88,14 @@ export default async function StepPage({
         .select('visuals')
         .eq('id', project.id)
         .single();
+      const { works, ...slots } = (full?.visuals ?? {}) as Record<string, unknown> & {
+        works?: { path: string; caption?: string }[];
+      };
       content = (
         <Step4Visual
           projectId={project.id}
-          initialVisuals={(full?.visuals ?? {}) as Record<string, string>}
+          initialVisuals={slots as Record<string, string>}
+          initialWorks={works ?? []}
           readOnly={project.status === 'generating'}
           aiImageEnabled={!!process.env.GEMINI_API_KEY}
         />

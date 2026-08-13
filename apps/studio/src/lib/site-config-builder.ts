@@ -89,6 +89,8 @@ async function loadBuildData(
     hero_sm?: string;
     representative?: string;
     office?: string;
+    /** 事例・作品ギャラリー（登録順） */
+    works?: { path: string; caption?: string }[];
   };
 
   return {
@@ -114,6 +116,10 @@ async function loadBuildData(
           heroSm: publicUrl(visuals.hero_sm),
           representative: publicUrl(visuals.representative),
           office: publicUrl(visuals.office),
+          works: (visuals.works ?? []).map((w) => ({
+            src: publicUrl(w.path)!,
+            caption: w.caption || undefined,
+          })),
         },
         variant: (project.design_variant ?? 'classic') as DesignVariant,
       },

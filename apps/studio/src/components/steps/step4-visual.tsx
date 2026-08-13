@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import {
   generateHeroImageForProject,
   saveVisualSlot,
+  updateWorkPhotos,
 } from '@/app/projects/[id]/steps/visual-actions';
 import { AdvanceButton } from './advance-button';
 
@@ -76,23 +77,71 @@ async function downscale(file: File, maxWidth: number): Promise<Blob> {
   );
 }
 
+type WorkPhoto = { path: string; caption?: string };
+
 export function Step4Visual({
   projectId,
   initialVisuals,
+  initialWorks,
   readOnly,
   aiImageEnabled,
 }: {
   projectId: string;
   initialVisuals: Record<string, string>;
+  /** 事例・作品ギャラリー（登録順） */
+  initialWorks: WorkPhoto[];
   readOnly: boolean;
   /** GEMINI_API_KEY設定時のみtrue（ヒーローのAI生成ボタンを表示） */
   aiImageEnabled: boolean;
 }) {
   const router = useRouter();
   const [visuals, setVisuals] = useState(initialVisuals);
+  const [works, setWorks] = useState<WorkPhoto[]>(initialWorks);
+  const [worksBusy, setWorksBusy] = useState(false);
   const [busySlot, setBusySlot] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  /** 事例写真の一括アップロード（縮小→WebP→追加。1枚ずつ順に処理） */
+  const onUploadWorks = async (files: FileList) => {
+    setError(null);
+    setWorksBusy(true);
+    try {
+      const supabase = createClient();
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith('image/')) continue;
+        const blob = await downscale(file, 1600);
+        const path = `projects/${projectId}/work-${Date.now()}-${Math.floor(Math.random() * 1000)}.webp`;
+        const { error: uploadError } = await supabase.storage
+          .from('assets')
+          .upload(path, blob, { contentType: blob.type, upsert: false });
+        if (uploadError) throw new Error(`アップロード失敗: ${uploadError.message}`);
+        const result = await updateWorkPhotos(projectId, { kind: 'add', path });
+        if (!result.ok) throw new Error(result.error);
+        setWorks(result.works);
+      }
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'アップロードに失敗しました');
+    } finally {
+      setWorksBusy(false);
+    }
+  };
+
+  const onRemoveWork = async (path: string) => {
+    setWorksBusy(true);
+    const result = await updateWorkPhotos(projectId, { kind: 'remove', path });
+    if (result.ok) {
+      setWorks(result.works);
+      router.refresh();
+    } else setError(result.error);
+    setWorksBusy(false);
+  };
+
+  const onCaptionWork = async (path: string, caption: string) => {
+    const result = await updateWorkPhotos(projectId, { kind: 'caption', path, caption });
+    if (result.ok) setWorks(result.works);
+  };
 
   const onUpload = async (def: SlotDef, file: File) => {
     setError(null);
@@ -258,6 +307,81 @@ export function Step4Visual({
           );
         })}
       </ul>
+
+      <section className="card p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-neutral-900">
+              事例・作品の写真
+              <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">
+                ★ サイトの説得力を決めます
+              </span>
+            </p>
+            <p className="mt-0.5 text-xs text-neutral-500">
+              施工事例・料理・作品など「仕事ぶりが伝わる写真」を何枚でも。トップと事例ページのギャラリーになります（2〜10枚が目安・最大24枚）
+            </p>
+          </div>
+          {!readOnly && (
+            <label
+              className={`btn-secondary cursor-pointer ${worksBusy ? 'pointer-events-none opacity-50' : ''}`}
+            >
+              {worksBusy ? '処理中…' : '＋ 写真を追加（複数選択可）'}
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                disabled={worksBusy || readOnly}
+                onChange={(e) => {
+                  if (e.target.files?.length) onUploadWorks(e.target.files);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+          )}
+        </div>
+        {works.length > 0 && (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {works.map((w) => (
+              <div key={w.path} className="rounded-xl border border-neutral-200 p-2">
+                <div className="aspect-[4/3] overflow-hidden rounded-lg bg-neutral-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`${PUBLIC_BASE}${w.path}`}
+                    alt={w.caption ?? '事例写真'}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    type="text"
+                    defaultValue={w.caption ?? ''}
+                    placeholder="キャプション（例: 断熱改修の施工中）"
+                    maxLength={60}
+                    disabled={readOnly}
+                    onBlur={(e) => {
+                      if ((e.target.value || '') !== (w.caption ?? '')) {
+                        onCaptionWork(w.path, e.target.value);
+                      }
+                    }}
+                    className="min-w-0 flex-1 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs focus:border-amber-500 focus:outline-none"
+                  />
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      disabled={worksBusy}
+                      onClick={() => onRemoveWork(w.path)}
+                      className="shrink-0 rounded-lg px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      削除
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className="flex justify-end">
         <AdvanceButton

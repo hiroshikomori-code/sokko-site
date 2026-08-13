@@ -563,3 +563,59 @@ function SectionLead({ text }: { text: string }) {
     <p className="mt-5 max-w-2xl leading-loose text-[var(--sk-ink-soft)]">{text}</p>
   );
 }
+
+/**
+ * 事例・作品ギャラリー（config.images.works から表示。buildSiteConfigが自動挿入）。
+ * - heading付き（トップのダイジェスト）: 最大6枚＋事例ページへの導線
+ * - headingなし（事例ページ）: 全量表示
+ * 写真が無い場合は何も描画しない（写真なしデザインへの自動フォールバック）
+ */
+export function WorksGallery({ section, config }: SectionProps) {
+  const works = config.images?.works ?? [];
+  if (works.length === 0) return null;
+  const isDigest = section.heading !== undefined;
+  const shown = isDigest ? works.slice(0, 6) : works;
+  const casesPage = config.pages.find((p) => p.key === 'cases');
+
+  return (
+    <section
+      className={`py-20 ${isDigest ? 'bg-[var(--sk-paper-soft)]' : 'bg-[var(--sk-paper)]'}`}
+    >
+      <div className={container}>
+        {section.heading && <SectionHeading text={section.heading} />}
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {shown.map((work, i) => (
+            <figure key={`${work.src}-${i}`} className="group">
+              <div className="aspect-[4/3] overflow-hidden rounded-[var(--sk-radius)] border border-[var(--sk-line)] bg-[var(--sk-paper-soft)] shadow-[var(--sk-shadow-card)]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={work.src}
+                  alt={work.caption ?? `事例写真${i + 1}`}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                />
+              </div>
+              {work.caption && (
+                <figcaption className="mt-2.5 flex items-center gap-2 text-sm text-[var(--sk-ink-soft)]">
+                  <span aria-hidden className="inline-block h-px w-5 bg-[var(--sk-gold)]" />
+                  {work.caption}
+                </figcaption>
+              )}
+            </figure>
+          ))}
+        </div>
+        {isDigest && works.length > shown.length && casesPage && (
+          <p className="mt-8 text-right">
+            <a
+              href={casesPage.path}
+              className="text-sm font-semibold text-[var(--sk-primary-strong)] hover:underline"
+            >
+              {casesPage.navLabel ?? 'もっと見る'}をもっと見る →
+            </a>
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
