@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { projectInputSchema, type ProjectInput } from '@sokko/shared';
 import { getCurrentUser } from '@/lib/auth';
 import { suggestDesign, type DesignProposal } from '@/lib/design-concierge';
+import { fetchReferenceScreenshot } from '@/lib/reference-shot';
 import { classifyIndustry } from '@/lib/industry-classifier';
 import { draftStep1, type Step1DraftSuggestion } from '@/lib/step1-drafter';
 import { createClient } from '@/lib/supabase/server';
@@ -90,7 +91,8 @@ export async function draftStep1FromMemo(
 export async function suggestDesignForProject(
   projectId: string,
 ): Promise<
-  { ok: true; proposals: DesignProposal[] } | { ok: false; error: string }
+  | { ok: true; proposals: DesignProposal[]; referenceAnalyzed: boolean }
+  | { ok: false; error: string }
 > {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
@@ -104,11 +106,20 @@ export async function suggestDesignForProject(
   if (!project) return { ok: false, error: '案件が見つかりません' };
 
   try {
-    const proposals = await suggestDesign(project.input ?? {});
+    // 参考サイトURLがあれば実際の見た目を取得してAIに見せる（失敗時はURLのみで続行）
+    const input = (project.input ?? {}) as {
+      mood?: { referenceUrls?: string[] };
+    };
+    const referenceUrl = input.mood?.referenceUrls?.[0];
+    const shot = referenceUrl
+      ? await fetchReferenceScreenshot(referenceUrl)
+      : null;
+
+    const proposals = await suggestDesign(project.input ?? {}, shot);
     if (proposals.length < 3) {
       return { ok: false, error: '提案の生成に失敗しました。もう一度お試しください' };
     }
-    return { ok: true, proposals };
+    return { ok: true, proposals, referenceAnalyzed: shot !== null };
   } catch (err) {
     console.error('suggestDesignForProject failed:', err);
     return { ok: false, error: '提案の生成に失敗しました。もう一度お試しください' };

@@ -13,6 +13,7 @@ import { suggestDesignForProject } from '@/app/projects/[id]/steps/actions';
  */
 export function DesignConcierge({ projectId }: { projectId: string }) {
   const [proposals, setProposals] = useState<DesignProposal[] | null>(null);
+  const [referenceAnalyzed, setReferenceAnalyzed] = useState(false);
   const [applied, setApplied] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -22,8 +23,10 @@ export function DesignConcierge({ projectId }: { projectId: string }) {
       setError(null);
       setApplied(null);
       const result = await suggestDesignForProject(projectId);
-      if (result.ok) setProposals(result.proposals);
-      else setError(result.error);
+      if (result.ok) {
+        setProposals(result.proposals);
+        setReferenceAnalyzed(result.referenceAnalyzed);
+      } else setError(result.error);
     });
   };
 
@@ -50,7 +53,7 @@ export function DesignConcierge({ projectId }: { projectId: string }) {
             </span>
           </h4>
           <p className="mt-0.5 text-xs text-neutral-500">
-            ヒアリング内容から、デザインと色の組合せを根拠付きで3案提案します
+            ヒアリング内容から、デザインと色の組合せを根拠付きで3案提案します。参考サイトURLがあれば実際の見た目もAIが分析します
           </p>
         </div>
         <button
@@ -59,13 +62,19 @@ export function DesignConcierge({ projectId }: { projectId: string }) {
           disabled={pending}
           className="btn-secondary"
         >
-          {pending ? '提案を作成中…（10〜20秒）' : proposals ? 'もう一度提案' : '提案してもらう'}
+          {pending ? '提案を作成中…（参考サイト分析込みで最大1分）' : proposals ? 'もう一度提案' : '提案してもらう'}
         </button>
       </div>
 
       {error && (
         <p role="alert" className="mt-3 text-sm text-red-600">
           {error}
+        </p>
+      )}
+
+      {proposals && referenceAnalyzed && (
+        <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+          ✓ 参考サイトの見た目を分析して提案に反映しました
         </p>
       )}
 

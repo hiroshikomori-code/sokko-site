@@ -53,6 +53,12 @@ const VARIANT_GUIDE = DESIGN_VARIANT_KEYS.map(
 
 const SYSTEM = `あなたはWebサイト制作会社のアートディレクターです。ヒアリング内容から、その事業に合うデザインの方向性を3案提案します。
 
+参考サイトのスクリーンショット画像が添付されている場合:
+- 余白の密度／明暗／彩度／書体の方向（明朝的か・ゴシック的か）／装飾の量を読み取る
+- 1案目（最有力）は参考サイトの空気に最も近いバリアント×配色にする
+- 色は参考サイトのトーンと事業の信頼性の両方に調和させる
+- 各案のreasonに、参考サイトの何を踏襲・変換したかを一言含める（例:「参考サイトの余白感を踏襲し…」）
+
 選べるデザインバリアント（見た目のみの切替。構造・文章は共通）:
 ${VARIANT_GUIDE}
 
@@ -65,6 +71,10 @@ ${VARIANT_GUIDE}
 
 export async function suggestDesign(
   input: ProjectInputDraft,
+  referenceShot?: {
+    mediaType: 'image/jpeg' | 'image/png' | 'image/webp';
+    base64: string;
+  } | null,
 ): Promise<DesignProposal[]> {
   const basics = input.basics ?? {};
   const summary = [
@@ -81,22 +91,33 @@ export async function suggestDesign(
     `参考サイト: ${(input.mood?.referenceUrls ?? []).join(' / ') || 'なし'}`,
   ].join('\n');
 
+  const text = `以下のヒアリング内容に合うデザインを3案提案してください。${referenceShot ? '添付画像はお客様が「こんな雰囲気にしたい」と挙げた参考サイトのスクリーンショットです。' : ''}\n\n${summary}`;
+  const content: Anthropic.ContentBlockParam[] = referenceShot
+    ? [
+        {
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: referenceShot.mediaType,
+            data: referenceShot.base64,
+          },
+        },
+        { type: 'text', text },
+      ]
+    : [{ type: 'text', text }];
+
   const client = new Anthropic();
   const response = await client.messages.create({
     model: MODEL,
-    max_tokens: 1500,
+    // 画像分析込みだと1500では途中で切れることがある（実測）
+    max_tokens: 4000,
     system: SYSTEM,
-    messages: [
-      {
-        role: 'user',
-        content: `以下のヒアリング内容に合うデザインを3案提案してください。\n\n${summary}`,
-      },
-    ],
+    messages: [{ role: 'user', content }],
     output_config: { format: FORMAT },
   });
   const block = response.content.find((b) => b.type === 'text');
-  const text =
+  const raw =
     block && 'text' in block && typeof block.text === 'string' ? block.text : '';
-  const parsed = JSON.parse(text) as { proposals: DesignProposal[] };
+  const parsed = JSON.parse(raw) as { proposals: DesignProposal[] };
   return parsed.proposals.slice(0, 3);
 }
