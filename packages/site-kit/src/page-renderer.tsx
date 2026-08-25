@@ -11,6 +11,7 @@ import {
   Profile,
   RichText,
   Services,
+  Stats,
   Testimonials,
   WorksGallery,
 } from './sections';
@@ -21,6 +22,7 @@ const SECTION_COMPONENTS: Record<
 > = {
   hero: Hero,
   services: Services,
+  stats: Stats,
   pricing: Pricing,
   profile: Profile,
   testimonials: Testimonials,

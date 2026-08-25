@@ -39,7 +39,7 @@ export const PAGE_BLUEPRINTS: Record<
   home: {
     purpose:
       'トップページ。第一印象で「何者で・どこで・何をするか」を明快に伝え、相談への一歩を促す。',
-    sections: ['hero', 'services', 'faq', 'cta'],
+    sections: ['hero', 'stats', 'services', 'faq', 'cta'],
   },
   services: {
     purpose: '取扱業務の詳細。誰のどんな悩みをどう解決するかを具体的に。',

@@ -49,6 +49,35 @@ function Kicker({
 const AMBIENT_SCRIPT =
   "(function(){var s=document.currentScript;if(!s)return;if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;function start(){var host=s.parentElement;if(!host)return;var c=document.createElement('canvas');c.setAttribute('aria-hidden','true');c.className='absolute inset-0 h-full w-full opacity-60';host.insertBefore(c,s);var x=c.getContext('2d');if(!x)return;var W,H;function size(){W=c.width=c.offsetWidth;H=c.height=c.offsetHeight}size();addEventListener('resize',size);var N=Math.min(40,Math.floor((W||1200)/32)),P=[];for(var i=0;i<N;i++)P.push({x:Math.random(),y:Math.random(),vx:(Math.random()-.5)*.0008,vy:(Math.random()-.5)*.0008});var accent=(getComputedStyle(c).getPropertyValue('--sk-gold')||'#67e8f9').trim();var R=150;function tick(){x.clearRect(0,0,W,H);var i,j;for(i=0;i<N;i++){var p=P[i];p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>1)p.vx*=-1;if(p.y<0||p.y>1)p.vy*=-1}x.strokeStyle=accent;for(i=0;i<N;i++)for(j=i+1;j<N;j++){var a=P[i],b=P[j],dx=(a.x-b.x)*W,dy=(a.y-b.y)*H,d=dx*dx+dy*dy;if(d<R*R){x.globalAlpha=.14*(1-d/(R*R));x.beginPath();x.moveTo(a.x*W,a.y*H);x.lineTo(b.x*W,b.y*H);x.stroke()}}x.fillStyle=accent;x.globalAlpha=.7;for(i=0;i<N;i++){x.beginPath();x.arc(P[i].x*W,P[i].y*H,1.6,0,6.2832);x.fill()}requestAnimationFrame(tick)}requestAnimationFrame(tick)}if(document.readyState==='complete'){setTimeout(start,0)}else{addEventListener('load',function(){setTimeout(start,120)})}})();";
 
+/** ヒーロー下の信頼チップ（対応エリア・創業年。①入力の事実のみ） */
+function HeroChips({ config, light }: { config: SiteConfig; light?: boolean }) {
+  const b = config.business;
+  const chips: string[] = [];
+  if (b.serviceAreaCities.length > 0) {
+    chips.push(`対応エリア ${b.serviceAreaCities.slice(0, 3).join('・')}`);
+  }
+  if (b.foundedYear) {
+    chips.push(`創業 ${b.foundedYear.replace(/年.*$/, '')}年`);
+  }
+  if (chips.length === 0) return null;
+  return (
+    <div className="mt-8 flex flex-wrap gap-2.5">
+      {chips.map((c) => (
+        <span
+          key={c}
+          className={`rounded-full border px-3.5 py-1.5 text-xs tracking-wide ${
+            light
+              ? 'border-white/30 text-white/85'
+              : 'border-[var(--sk-line)] bg-[var(--sk-paper)] text-[var(--sk-ink-soft)]'
+          }`}
+        >
+          {c}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function HeroAmbient({ config }: { config: SiteConfig }) {
   if ((config.design.variant ?? 'classic') !== 'future') return null;
   // canvasはハイドレーション完了後（load後）にスクリプトが動的挿入する。
@@ -111,6 +140,7 @@ export function Hero({ section, config }: SectionProps) {
                   お電話でのご相談　{config.business.phone}
                 </p>
               </div>
+              <HeroChips config={config} />
             </div>
           </div>
           <div className="relative min-h-[320px] lg:min-h-[560px]">
@@ -178,6 +208,7 @@ export function Hero({ section, config }: SectionProps) {
               お電話でのご相談　{config.business.phone}
             </p>
           </div>
+          <HeroChips config={config} light />
         </div>
         {/* 屋号ふりがなの透かし（レイヤー感の演出。装飾のみ） */}
         <p
@@ -235,6 +266,7 @@ export function Hero({ section, config }: SectionProps) {
             お電話でのご相談　{config.business.phone}
           </p>
         </div>
+        <HeroChips config={config} />
       </div>
     </section>
   );
@@ -568,7 +600,7 @@ export function Access({ section, config }: SectionProps) {
   const b = config.business;
   const officePhoto = config.images?.office;
   return (
-    <section className="py-20">
+    <section className="py-20 bg-[var(--sk-paper-soft)]">
       <div className={container}>
         {section.heading && <SectionHeading en="ACCESS" text={section.heading} />}
         <div
@@ -648,7 +680,7 @@ export function Faq({ section, config }: SectionProps) {
     ? section.items
     : config.aeo.faq.map((f) => ({ title: f.question, body: f.answer }));
   return (
-    <section className="py-20">
+    <section className="bg-[var(--sk-paper-soft)] py-20">
       <div className={container}>
         <SectionHeading en="Q&A" text={section.heading ?? 'よくある質問'} />
         <div className="mt-10 divide-y divide-[var(--sk-line)] border-y border-[var(--sk-line)]">
@@ -675,6 +707,37 @@ export function Faq({ section, config }: SectionProps) {
                 {item.body}
               </p>
             </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** 実績数字の帯（数字はAI生成だがヒアリング記載のもの限定＝プロンプトで担保） */
+export function Stats({ section }: SectionProps) {
+  const items = (section.items ?? []).filter((i) => i.meta);
+  if (items.length < 2) return null;
+  return (
+    <section className="relative overflow-hidden bg-[var(--sk-deep)] py-16 text-white">
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--sk-gold)] to-transparent"
+      />
+      <div className={container}>
+        <div className="flex flex-wrap items-start justify-center gap-x-20 gap-y-10 text-center">
+          {items.map((item) => (
+            <div key={item.title} className="min-w-[7rem]">
+              <p className={`text-4xl leading-none sm:text-5xl ${display}`}>
+                {item.meta}
+              </p>
+              <p className="mt-3 text-xs font-semibold tracking-[0.25em] text-white/70">
+                {item.title}
+              </p>
+              {item.body && (
+                <p className="mt-1.5 text-xs text-white/50">{item.body}</p>
+              )}
+            </div>
           ))}
         </div>
       </div>
@@ -757,6 +820,8 @@ export function NewsDigestShell({
  * site-template側ではライブ取得版（LiveNewsDigest）に差し替えられる。
  */
 export function NewsDigest({ section, config }: SectionProps) {
+  // 0件のときは帯ごと出さない（ヒーロー直下の一等地に空欄を見せない）
+  if (config.announcements.baked.length === 0) return null;
   return (
     <NewsDigestShell heading={section.heading ?? 'お知らせ'}>
       <NewsList items={config.announcements.baked.slice(0, 3)} />
@@ -846,7 +911,7 @@ export function WorksGallery({ section, config }: SectionProps) {
 
   return (
     <section
-      className={`py-20 ${isDigest ? 'bg-[var(--sk-paper-soft)]' : 'bg-[var(--sk-paper)]'}`}
+      className={`py-20 ${isDigest ? 'bg-[var(--sk-paper)]' : 'bg-[var(--sk-paper-soft)]'}`}
     >
       <div className={container}>
         {section.heading && <SectionHeading en="WORKS" text={section.heading} />}

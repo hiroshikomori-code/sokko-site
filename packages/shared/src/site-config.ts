@@ -13,6 +13,8 @@ export const sectionSchema = z.object({
   type: z.enum([
     'hero',
     'services',
+    /** 実績数字の帯（創業年・件数など。数字はヒアリング記載のもの限定） */
+    'stats',
     'pricing',
     'profile',
     'testimonials',

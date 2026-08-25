@@ -76,6 +76,7 @@ ${blueprint.sections.join(' → ')}
 ## セクション種別ごとの書き方
 - hero: heading=読者の悩みに刺さる主見出し（30字前後）、body=事務所の価値を伝えるリード文（100字前後）
 - services: heading=見出し、items=業務ごとに {title, body}（bodyは2〜3文で具体的に）
+- stats: 実績数字の帯。items=数字ごとに {meta=数字と単位（例: 45年 / 300件+ / 8名）, title=短いラベル（例: 創業 / 断熱リフォーム実績 / 自社大工）, body=省略可の一言}。**ヒアリング入力に書かれている数字だけを使う（推測・創作は厳禁）**。使える数字が2つ未満なら items を空配列にする（帯は表示されない）。headingは不要
 - pricing: heading=見出し、items=料金項目ごとに {title, body=補足, meta=価格（例: 月額 30,000円〜）}
 - profile: heading=見出し、body=代表の経歴・人柄・依頼者への想い（200〜300字、改行可）
 - testimonials: heading=見出し、items=事例ごとに {title=依頼者属性, body=声または相談例と対応, meta=補足}

@@ -74,6 +74,8 @@ export function LiveNewsDigest({
 }) {
   const items = useLiveAnnouncements(config, 3);
 
+  // 0件のときは帯ごと出さない（お知らせが投稿されたら次の表示から現れる）
+  if (items.length === 0) return null;
   return (
     <NewsDigestShell heading={section.heading ?? 'お知らせ'}>
       <NewsList items={items} />
