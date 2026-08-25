@@ -166,7 +166,14 @@ const DRAFT_REVEAL_SCRIPT = `
       }, delay + 500);
     } catch (e) {}
   }
-  if (document.readyState === 'complete') run();
-  else addEventListener('load', run);
+  // Reactのハイドレーション完了前にDOMを触ると差分警告になるため、
+  // load後にメインスレッドが空くのを待ち、さらに0.6秒置いてから開始する
+  function schedule() {
+    var go = function () { setTimeout(run, 600); };
+    if ('requestIdleCallback' in window) requestIdleCallback(go);
+    else go();
+  }
+  if (document.readyState === 'complete') schedule();
+  else addEventListener('load', schedule);
 })();
 `;
