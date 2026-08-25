@@ -122,6 +122,11 @@ export function Hero({ section, config }: SectionProps) {
               fetchPriority="high"
               className="absolute inset-0 h-full w-full object-cover"
             />
+            {/* 額装ライン（雑誌的な仕上げ） */}
+            <span
+              aria-hidden
+              className="absolute inset-5 hidden border border-white/45 lg:block"
+            />
             <span
               aria-hidden
               className="absolute inset-y-0 left-0 hidden w-1 bg-[var(--sk-gold)] lg:block"
@@ -174,6 +179,20 @@ export function Hero({ section, config }: SectionProps) {
             </p>
           </div>
         </div>
+        {/* 屋号ふりがなの透かし（レイヤー感の演出。装飾のみ） */}
+        <p
+          aria-hidden
+          className={`pointer-events-none absolute -bottom-[0.12em] left-0 right-0 select-none overflow-hidden whitespace-nowrap text-[15vw] leading-none text-white/[0.05] ${display}`}
+        >
+          {config.business.officeNameKana}
+        </p>
+        <div
+          aria-hidden
+          className="absolute bottom-7 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 sm:flex"
+        >
+          <span className="text-[10px] tracking-[0.35em] text-white/60">SCROLL</span>
+          <span className="h-10 w-px origin-top bg-white/45 [animation:sk-scrollcue_2.2s_ease-in-out_infinite]" />
+        </div>
         <div
           className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--sk-gold)] to-transparent"
           aria-hidden
@@ -192,6 +211,12 @@ export function Hero({ section, config }: SectionProps) {
         aria-hidden
       />
       <HeroAmbient config={config} />
+      <p
+        aria-hidden
+        className={`pointer-events-none absolute -bottom-[0.12em] left-0 right-0 select-none overflow-hidden whitespace-nowrap text-[15vw] leading-none text-[var(--sk-ink)]/[0.04] ${display}`}
+      >
+        {config.business.officeNameKana}
+      </p>
       <div className={`${container} relative py-28 sm:py-40`}>
         <Kicker text={kicker} />
         <h1
@@ -224,7 +249,7 @@ export function Services({ section, config }: SectionProps) {
     return (
       <section data-sk-layout="zigzag" className="py-20">
         <div className={container}>
-          {section.heading && <SectionHeading text={section.heading} />}
+          {section.heading && <SectionHeading en="SERVICE" text={section.heading} />}
           {section.body && <SectionLead text={section.body} />}
           <div className="mt-12 space-y-16">
             {(section.items ?? []).map((item, i) => {
@@ -278,7 +303,7 @@ export function Services({ section, config }: SectionProps) {
     return (
       <section data-sk-layout="numbered" className="py-20">
         <div className={container}>
-          {section.heading && <SectionHeading text={section.heading} />}
+          {section.heading && <SectionHeading en="SERVICE" text={section.heading} />}
           {section.body && <SectionLead text={section.body} />}
           <div className="mt-10 divide-y divide-[var(--sk-line)] border-y border-[var(--sk-line)]">
             {(section.items ?? []).map((item, i) => (
@@ -303,7 +328,7 @@ export function Services({ section, config }: SectionProps) {
   return (
     <section data-sk-layout="cards" className="py-20">
       <div className={container}>
-        {section.heading && <SectionHeading text={section.heading} />}
+        {section.heading && <SectionHeading en="SERVICE" text={section.heading} />}
         {section.body && <SectionLead text={section.body} />}
         <div className="mt-10 grid gap-6 sm:grid-cols-2">
           {(section.items ?? []).map((item, i) => (
@@ -341,7 +366,7 @@ export function Pricing({ section }: SectionProps) {
     return (
       <section data-sk-layout="plans" className="bg-[var(--sk-paper-soft)] py-20">
         <div className={container}>
-          {section.heading && <SectionHeading text={section.heading} />}
+          {section.heading && <SectionHeading en="PRICE" text={section.heading} />}
           {section.body && <SectionLead text={section.body} />}
           <div
             className={`mt-10 grid gap-6 sm:grid-cols-2 ${items.length >= 3 ? 'lg:grid-cols-3' : ''}`}
@@ -375,7 +400,7 @@ export function Pricing({ section }: SectionProps) {
   return (
     <section data-sk-layout="table" className="bg-[var(--sk-paper-soft)] py-20">
       <div className={container}>
-        {section.heading && <SectionHeading text={section.heading} />}
+        {section.heading && <SectionHeading en="PRICE" text={section.heading} />}
         {section.body && <SectionLead text={section.body} />}
         <div className="mt-10 overflow-hidden rounded-[var(--sk-radius)] border border-[var(--sk-line)] shadow-[var(--sk-shadow-card)]">
           <table className="w-full bg-[var(--sk-paper)] text-sm">
@@ -420,7 +445,7 @@ export function Profile({ section, config }: SectionProps) {
     return (
       <section data-sk-layout="interview" className="bg-[var(--sk-paper-soft)] py-20">
         <div className={container}>
-          {section.heading && <SectionHeading text={section.heading} />}
+          {section.heading && <SectionHeading en="ABOUT" text={section.heading} />}
           <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(240px,340px)_1fr] lg:items-start">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -457,7 +482,7 @@ export function Profile({ section, config }: SectionProps) {
   return (
     <section data-sk-layout="standard" className="py-20">
       <div className={container}>
-        {section.heading && <SectionHeading text={section.heading} />}
+        {section.heading && <SectionHeading en="ABOUT" text={section.heading} />}
         <div className="mt-10 grid gap-10 sm:grid-cols-[auto_1fr] sm:items-start">
           {photo && (
             <img
@@ -504,7 +529,7 @@ export function Testimonials({ section }: SectionProps) {
   return (
     <section data-sk-layout={layout} className="bg-[var(--sk-paper-soft)] py-20">
       <div className={container}>
-        {section.heading && <SectionHeading text={section.heading} />}
+        {section.heading && <SectionHeading en="VOICE" text={section.heading} />}
         <div
           className={
             layout === 'cards'
@@ -545,7 +570,7 @@ export function Access({ section, config }: SectionProps) {
   return (
     <section className="py-20">
       <div className={container}>
-        {section.heading && <SectionHeading text={section.heading} />}
+        {section.heading && <SectionHeading en="ACCESS" text={section.heading} />}
         <div
           className={`mt-10 grid gap-8 ${officePhoto ? 'sm:grid-cols-[1.1fr_1fr] sm:items-start' : ''}`}
         >
@@ -625,7 +650,7 @@ export function Faq({ section, config }: SectionProps) {
   return (
     <section className="py-20">
       <div className={container}>
-        <SectionHeading text={section.heading ?? 'よくある質問'} />
+        <SectionHeading en="Q&A" text={section.heading ?? 'よくある質問'} />
         <div className="mt-10 divide-y divide-[var(--sk-line)] border-y border-[var(--sk-line)]">
           {items.map((item) => (
             <details key={item.title} className="group py-5">
@@ -695,7 +720,7 @@ export function NewsSectionShell({
   return (
     <section className="py-20">
       <div className={container}>
-        <SectionHeading text={heading} />
+        <SectionHeading en="NEWS" text={heading} />
         <div className="mt-10">{children}</div>
       </div>
     </section>
@@ -766,9 +791,26 @@ export function Cta({ section, config }: SectionProps) {
   return <Contact section={section} config={config} />;
 }
 
-function SectionHeading({ text, center }: { text: string; center?: boolean }) {
+function SectionHeading({
+  text,
+  en,
+  center,
+}: {
+  text: string;
+  /** 和欧バイリンガル見出しの英字ラベル（例: SERVICE / WORKS） */
+  en?: string;
+  center?: boolean;
+}) {
   return (
     <div className={center ? 'text-center' : ''}>
+      {en && (
+        <p
+          aria-hidden
+          className="mb-2.5 text-[11px] font-semibold tracking-[0.32em] text-[var(--sk-gold-text)]"
+        >
+          {en}
+        </p>
+      )}
       <span
         aria-hidden
         data-sk-rule
@@ -807,7 +849,7 @@ export function WorksGallery({ section, config }: SectionProps) {
       className={`py-20 ${isDigest ? 'bg-[var(--sk-paper-soft)]' : 'bg-[var(--sk-paper)]'}`}
     >
       <div className={container}>
-        {section.heading && <SectionHeading text={section.heading} />}
+        {section.heading && <SectionHeading en="WORKS" text={section.heading} />}
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((work, i) => (
             <figure key={`${work.src}-${i}`} className="group">

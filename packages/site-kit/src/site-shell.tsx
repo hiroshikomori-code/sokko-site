@@ -44,6 +44,7 @@ const REVEAL_CSS = [
   '@keyframes sk-zl{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}',
   '@keyframes sk-zr{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}',
   '@keyframes sk-cta{from{opacity:0;transform:translateY(100%)}to{opacity:1;transform:none}}',
+  '@keyframes sk-scrollcue{0%{transform:scaleY(0)}55%{transform:scaleY(1)}100%{transform:scaleY(0);transform-origin:bottom}}',
 ].join('');
 
 export function SiteShell({
@@ -139,7 +140,10 @@ export function SiteShell({
         <div className="mx-auto w-full max-w-5xl px-5 py-14">
           <div className="flex flex-col justify-between gap-10 sm:flex-row">
             <div>
-              <p className={`text-lg text-white ${display}`}>{b.officeName}</p>
+              <p className={`text-xl text-white ${display}`}>{b.officeName}</p>
+              <p className="mt-1 text-[10px] tracking-[0.3em] text-white/40">
+                {b.officeNameKana}
+              </p>
               <p className="mt-4 text-sm leading-relaxed">{b.address}</p>
               <p className="mt-1 text-sm">
                 {b.phone}（{b.businessHours} / 定休日: {b.closedDays}）
